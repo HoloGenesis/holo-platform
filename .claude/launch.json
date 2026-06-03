@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "soulseed-compass", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "soulseed-compass", "dev"], "port": 3000 }
+  ]
+}

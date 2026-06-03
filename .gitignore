@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+
+# Turborepo
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Next.js generated types
+next-env.d.ts
+
+# Coverage
+coverage/
+
+# Project planning / memory docs (kept local, not committed)
+PROJECT_MEMORY.md
+00_README_START_HERE.md
+01_Master_Blueprint.md
+02_Prompt_Templates.md
+03_Section_Log.md
+05_COWORK_INSTRUCTIONS.md
+CLAUDE.md

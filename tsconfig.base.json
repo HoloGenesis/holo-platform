@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "HOLO Platform Base",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@holo/contracts": ["packages/contracts/src/index.ts"],
+      "@holo/sdk": ["packages/holo-sdk/src/index.ts"],
+      "@holo/hdom": ["packages/hdom/src/index.ts"],
+      "@holo/product-manifests": ["packages/product-manifests/src/index.ts"],
+      "@holo/agent-prompts": ["packages/agent-prompts/src/index.ts"],
+      "@holo/ui": ["packages/ui/src/index.ts"],
+      "@holo/core-api": ["services/holo-core-api/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next", ".turbo"]
+}

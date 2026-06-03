@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: #08080c;
+}
+
+/* Ambient void: a deep field with faint gold + indigo glows top and bottom. */
+body {
+  background-image:
+    radial-gradient(60% 50% at 50% -10%, rgba(232, 193, 106, 0.1), transparent 70%),
+    radial-gradient(70% 60% at 50% 115%, rgba(99, 102, 241, 0.12), transparent 70%);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .glass {
+    background-color: rgba(18, 18, 26, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 20px 60px -30px rgba(0, 0, 0, 0.85);
+  }
+  .gold-text {
+    color: #e8c16a;
+  }
+}
+
+/* Quiet, gold-tinted scrollbar. */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(232, 193, 106, 0.18);
+  border-radius: 9999px;
+}
