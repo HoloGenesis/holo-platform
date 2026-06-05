@@ -24,8 +24,14 @@ export type Importance = z.infer<typeof ImportanceSchema>;
 // Closed enums (kept as `as const` arrays so they can build the HURL pattern too)
 // ---------------------------------------------------------------------------
 
+// Keys are OPEN strings, not closed enums: the Core engine never enumerates
+// products, personas, or chambers — those are declared by each skin's manifest
+// (see docs/skin-manifest-spec.md). The *_KEYS arrays are seed references for
+// the SoulSeed instance only; they do not constrain the engine.
+const SLUG = /^[a-z0-9][a-z0-9-]*$/;
+
 export const PRODUCT_KEYS = ["soulseed", "holobook"] as const;
-export const ProductKeySchema = z.enum(PRODUCT_KEYS);
+export const ProductKeySchema = z.string().regex(SLUG);
 export type ProductKey = z.infer<typeof ProductKeySchema>;
 
 export const CHAMBER_KEYS = [
@@ -36,11 +42,11 @@ export const CHAMBER_KEYS = [
   "trajectory-branch",
   "living-invitation",
 ] as const;
-export const ChamberKeySchema = z.enum(CHAMBER_KEYS);
+export const ChamberKeySchema = z.string().regex(SLUG);
 export type ChamberKey = z.infer<typeof ChamberKeySchema>;
 
 export const AGENT_KEYS = ["rezzie", "coach", "ang3l"] as const;
-export const AgentKeySchema = z.enum(AGENT_KEYS);
+export const AgentKeySchema = z.string().regex(SLUG);
 export type AgentKey = z.infer<typeof AgentKeySchema>;
 
 /** The seven memory scopes (see docs/memory-model.md). */

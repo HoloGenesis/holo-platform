@@ -15,6 +15,7 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
+    "@holo/agent-prompts": "workspace:*",
     "@holo/contracts": "workspace:*"
   },
   "devDependencies": {

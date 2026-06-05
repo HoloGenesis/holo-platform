@@ -33,6 +33,7 @@ describe("AgentRunRequestSchema", () => {
 describe("ProductManifestSchema", () => {
   const valid = {
     productKey: "soulseed",
+    name: "SoulSeed Compass",
     version: "1.0.0",
     rootHolon: {
       id: "root",
@@ -44,6 +45,14 @@ describe("ProductManifestSchema", () => {
       trajectory: {},
       relationships: [],
       children: [],
+    },
+    agents: {
+      rezzie: {
+        role: "conductor",
+        systemPrompt: "You are a guide.",
+        output: "agent",
+        readScopes: ["profile", "narrative"],
+      },
     },
     chambers: [
       {
@@ -67,11 +76,9 @@ describe("ProductManifestSchema", () => {
     expect(parsed.chambers[0]?.next).toBe("identity-seed");
   });
 
-  it("throws on an invalid ProductManifest (chamber.next is not a ChamberKey)", () => {
-    const invalid = {
-      ...valid,
-      chambers: [{ ...valid.chambers[0], next: "nowhere" }],
-    };
+  it("throws on an invalid ProductManifest (missing required agents)", () => {
+    const invalid: Record<string, unknown> = { ...valid };
+    delete invalid.agents;
     expect(() => ProductManifestSchema.parse(invalid)).toThrow();
   });
 });

@@ -39,7 +39,7 @@ export function composePrompt({ agent, chamberKey, isReturning }: ComposePromptA
   const parts: string[] =
     agent === "coach"
       ? [COACH_SYSTEM_PROMPT, COACH_SYNTHESIS_INSTRUCTION]
-      : [REZZIE_SYSTEM_PROMPT, REZZIE_CHAMBER_APPENDIX[chamberKey]];
+      : [REZZIE_SYSTEM_PROMPT, REZZIE_CHAMBER_APPENDIX[chamberKey] ?? ""];
 
   if (isReturning) {
     parts.push(agent === "coach" ? COACH_RETURN_APPENDIX : REZZIE_RETURN_APPENDIX);

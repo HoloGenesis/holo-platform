@@ -1,35 +1,23 @@
-import type {
-  AgentRunRequest,
-  CoachingAgentOutput,
-  ProductManifest,
-  SoulSeedAgentOutput,
-} from "@holo/contracts";
+import type { CoachingAgentOutput, SoulSeedAgentOutput } from "@holo/contracts";
 
-// Safe canned responses used when the model fails validation twice, so the user
-// is never left staring at an empty chamber. (See output-contract.md retry policy.)
+// Safe canned responses when the model fails validation twice — so the user is
+// never left staring at an empty chamber. Persona-agnostic: the conductor's
+// message falls back to the chamber's own opener.
 
-function rezzieFallback(request: AgentRunRequest, manifest: ProductManifest): SoulSeedAgentOutput {
-  const chamber = manifest.chambers.find((c) => c.key === request.chamberKey);
+function agentFallback(chamberIntro: string): SoulSeedAgentOutput {
   return {
-    message: chamber?.prompts.intro ?? "",
-    insight: `Agent failure fallback for ${request.chamberKey}.`,
+    message: chamberIntro || "Take your time.",
+    insight: "Agent fallback used.",
     detectedThemes: [],
     coherenceDelta: 0,
-    memoryWrites: [
-      {
-        scope: "event",
-        content: `Agent fallback used in ${request.chamberKey}.`,
-        contentJson: null,
-        importance: 0.05,
-      },
-    ],
+    memoryWrites: [{ scope: "event", content: "Agent fallback used.", contentJson: null, importance: 0.05 }],
     statePatch: {},
     suggestedNextQuestion: null,
     suggestedNextChamber: null,
   };
 }
 
-function coachFallback(): CoachingAgentOutput {
+function synthesisFallback(): CoachingAgentOutput {
   return {
     message: "Here's what I'm seeing. Read it once before you decide what to do with it.",
     snapshot: {
@@ -42,22 +30,12 @@ function coachFallback(): CoachingAgentOutput {
       hurl: "hurl://soulseed/living-invitation/state-1/coherence-000",
       deeperTrajectoryTeaser: null,
     },
-    insight: "Agent failure fallback for living-invitation.",
+    insight: "Synthesis fallback used.",
     detectedThemes: [],
     coherenceDelta: 0,
     memoryWrites: [
-      {
-        scope: "narrative",
-        content: "Fallback Snapshot crystallization.",
-        contentJson: null,
-        importance: 0.85,
-      },
-      {
-        scope: "artifact",
-        content: "SoulSeed Snapshot generated (fallback).",
-        contentJson: null,
-        importance: 0.7,
-      },
+      { scope: "narrative", content: "Fallback Snapshot crystallization.", contentJson: null, importance: 0.85 },
+      { scope: "artifact", content: "Snapshot generated (fallback).", contentJson: null, importance: 0.7 },
     ],
     statePatch: { custom: { completedFlow: true } },
     returnSeed: "Come back when something changes. I'll ask you what.",
@@ -65,8 +43,8 @@ function coachFallback(): CoachingAgentOutput {
 }
 
 export function fallbackOutput(
-  request: AgentRunRequest,
-  manifest: ProductManifest
+  outputKind: "agent" | "synthesis",
+  chamberIntro: string
 ): SoulSeedAgentOutput | CoachingAgentOutput {
-  return request.agentKey === "coach" ? coachFallback() : rezzieFallback(request, manifest);
+  return outputKind === "synthesis" ? synthesisFallback() : agentFallback(chamberIntro);
 }

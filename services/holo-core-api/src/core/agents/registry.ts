@@ -1,6 +1,5 @@
 import { CoachingAgentOutputSchema, SoulSeedAgentOutputSchema } from "@holo/contracts";
-import type { AgentKey, MemoryScope } from "@holo/contracts";
-import type { PromptAgent } from "@holo/agent-prompts";
+import type { AgentSpec, MemoryScope, ProductManifest } from "@holo/contracts";
 import { CoreError } from "../../errors";
 
 /** Minimal validator shape (zod's safeParse is structurally compatible). */
@@ -9,34 +8,40 @@ export interface OutputValidator {
 }
 
 export interface AgentDef {
-  key: AgentKey;
+  key: string;
   role: string;
-  promptAgent: PromptAgent;
+  systemPrompt: string;
+  returnPrompt?: string;
+  outputKind: AgentSpec["output"];
   outputSchema: OutputValidator;
-  /** Default memory scopes to read if the chamber doesn't declare its own. */
-  defaultReadScopes: MemoryScope[];
+  readScopes: MemoryScope[];
+  mode?: "mock" | "live";
 }
 
-const REGISTRY: Partial<Record<AgentKey, AgentDef>> = {
-  rezzie: {
-    key: "rezzie",
-    role: "Sensei Wonderdog at the threshold (chambers 1–5)",
-    promptAgent: "rezzie",
-    outputSchema: SoulSeedAgentOutputSchema,
-    defaultReadScopes: ["profile", "state", "narrative", "trajectory"],
-  },
-  coach: {
-    key: "coach",
-    role: "Synthesizing presence at the Living Invitation (chamber 6)",
-    promptAgent: "coach",
-    outputSchema: CoachingAgentOutputSchema,
-    defaultReadScopes: ["profile", "narrative", "state", "trajectory", "event"],
-  },
-  // ang3l and the broader grid are parked for v1.
+// The engine knows two OUTPUT shapes (both persona-agnostic compass outputs);
+// the skin's manifest maps each agent to one. It never names a persona.
+const OUTPUT_SCHEMAS: Record<AgentSpec["output"], OutputValidator> = {
+  agent: SoulSeedAgentOutputSchema,
+  synthesis: CoachingAgentOutputSchema,
 };
 
-export function getAgent(key: AgentKey): AgentDef {
-  const def = REGISTRY[key];
-  if (!def) throw new CoreError("unknown_agent", 400, `No agent "${key}" in v1`);
-  return def;
+/**
+ * Resolve an agent from the active skin's manifest — NOT a hardcoded table.
+ * A new persona is a manifest entry; zero engine code.
+ */
+export function getAgent(manifest: ProductManifest, key: string): AgentDef {
+  const spec = manifest.agents[key];
+  if (!spec) {
+    throw new CoreError("unknown_agent", 400, `No agent "${key}" in skin "${manifest.productKey}"`);
+  }
+  return {
+    key,
+    role: spec.role,
+    systemPrompt: spec.systemPrompt,
+    returnPrompt: spec.returnPrompt,
+    outputKind: spec.output,
+    outputSchema: OUTPUT_SCHEMAS[spec.output],
+    readScopes: spec.readScopes,
+    mode: spec.mode,
+  };
 }

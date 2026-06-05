@@ -28,8 +28,13 @@ function sampleManifest(): ProductManifest {
 
   return {
     productKey: "soulseed",
+    name: "SoulSeed Compass",
     version: "1.0.0",
     rootHolon: createHolon({ id: "root", type: "product", title: "SoulSeed Compass" }),
+    agents: {
+      rezzie: { role: "conductor", systemPrompt: "guide", output: "agent", readScopes: ["profile"] },
+      coach: { role: "synthesis", systemPrompt: "synth", output: "synthesis", readScopes: ["profile"] },
+    },
     chambers: [
       chamber("threshold", "Threshold", "identity-seed"),
       chamber("identity-seed", "Identity Seed", "present-state"),

@@ -36,11 +36,33 @@ export const ChamberSlotSchema = z.object({
 });
 export type ChamberSlot = z.infer<typeof ChamberSlotSchema>;
 
-/** The typed manifest a product declares; chamber flow is data, never hardcoded. */
+/**
+ * A persona/conductor this skin can run. The skin OWNS its voice; the Core
+ * engine reads these and never names a persona. See docs/skin-manifest-spec.md.
+ */
+export const AgentSpecSchema = z.object({
+  role: z.string(),
+  /** The persona's system prompt — the skin's voice. */
+  systemPrompt: z.string(),
+  /** Appended on return visits. */
+  returnPrompt: z.string().optional(),
+  /** Which engine output shape this agent yields. */
+  output: z.enum(["agent", "synthesis"]),
+  readScopes: z.array(MemoryScopeSchema),
+  /** Per-agent mock/live override; falls back to env AGENT_MODE. */
+  mode: z.enum(["mock", "live"]).optional(),
+});
+export type AgentSpec = z.infer<typeof AgentSpecSchema>;
+
+/** The typed manifest a SKIN declares; chamber flow + personas are data, never hardcoded. */
 export const ProductManifestSchema = z.object({
   productKey: ProductKeySchema,
+  name: z.string(),
   version: z.string(),
+  theme: z.string().optional(),
   rootHolon: HolonSchema,
+  /** The personas this skin can run, keyed by agentKey; chambers reference these. */
+  agents: z.record(AgentSpecSchema),
   chambers: z.array(ChamberSlotSchema),
 });
 export type ProductManifest = z.infer<typeof ProductManifestSchema>;

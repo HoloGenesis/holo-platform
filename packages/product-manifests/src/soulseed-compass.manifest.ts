@@ -1,5 +1,11 @@
 import { ProductManifestSchema } from "@holo/contracts";
 import type { Holon, ProductManifest } from "@holo/contracts";
+import {
+  COACH_RETURN_APPENDIX,
+  COACH_SYSTEM_PROMPT,
+  REZZIE_RETURN_APPENDIX,
+  REZZIE_SYSTEM_PROMPT,
+} from "@holo/agent-prompts";
 
 // The SoulSeed Compass manifest — chamber flow as DATA, not code.
 // Content is drafted in docs/product-one-soulseed.md (S4a) and wired here (S4b).
@@ -20,8 +26,28 @@ const rootHolon: Holon = {
 
 const manifest: ProductManifest = {
   productKey: "soulseed",
+  name: "SoulSeed Compass",
   version: "1.0.0",
+  theme: "gold-void",
   rootHolon,
+  // The personas this skin runs. REZZIE/COACH voices live here (the skin), not
+  // in the engine. Prompt text is imported from @holo/agent-prompts.
+  agents: {
+    rezzie: {
+      role: "Sensei Wonderdog at the threshold (chambers 1–5)",
+      systemPrompt: REZZIE_SYSTEM_PROMPT,
+      returnPrompt: REZZIE_RETURN_APPENDIX,
+      output: "agent",
+      readScopes: ["profile", "state", "narrative", "trajectory"],
+    },
+    coach: {
+      role: "Synthesizing presence at the Living Invitation (chamber 6)",
+      systemPrompt: COACH_SYSTEM_PROMPT,
+      returnPrompt: COACH_RETURN_APPENDIX,
+      output: "synthesis",
+      readScopes: ["profile", "narrative", "state", "trajectory", "event"],
+    },
+  },
   chambers: [
     {
       key: "threshold",

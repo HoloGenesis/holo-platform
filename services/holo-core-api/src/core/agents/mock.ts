@@ -1,40 +1,33 @@
-import type {
-  AgentRunRequest,
-  ChamberKey,
-  CoachingAgentOutput,
-  SoulSeedAgentOutput,
-} from "@holo/contracts";
+import type { AgentRunRequest, CoachingAgentOutput, SoulSeedAgentOutput } from "@holo/contracts";
 
-// Deterministic, schema-valid mock outputs so the walking skeleton runs without
-// a live model. Grounded in the request input where possible.
+// Deterministic, schema-valid MOCK output for dev/CI. Persona-agnostic: it is
+// driven by the output kind, the user input, and the chamber's own copy — it
+// contains NO persona or instance strings. Voice comes from the skin's prompt
+// (live mode) or, if a skin wants flavored mocks, from its own layer.
+
+export interface MockContext {
+  request: AgentRunRequest;
+  outputKind: "agent" | "synthesis";
+  /** The active chamber's opener (from the manifest), used when there's no input. */
+  chamberIntro: string;
+}
 
 function asString(value: unknown, fallback: string): string {
   return typeof value === "string" && value.length > 0 ? value : fallback;
 }
 
-// Emergence pressure rises as the user moves deeper into the scroll. The agent
-// emits it; orchestration shallow-merges it onto session.state.
-const EMERGENCE_PRESSURE: Partial<Record<ChamberKey, number>> = {
-  "identity-seed": 0.1,
-  "present-state": 0.25,
-  "memory-root": 0.4,
-  "trajectory-branch": 0.6,
-};
-
-function mockRezzie(request: AgentRunRequest): SoulSeedAgentOutput {
-  const chamber: ChamberKey = request.chamberKey;
+function mockAgent(request: AgentRunRequest, chamberIntro: string): SoulSeedAgentOutput {
   const message = asString(request.input.message, "");
-  const emergencePressure = EMERGENCE_PRESSURE[chamber];
-
-  // Return mode — REZZIE remembers and asks what changed (never "welcome back").
+  const formData = request.input.formData ?? {};
   const returnContext = request.context?.returnContext;
+
+  // Return mode — remember and ask what changed (never "welcome back").
   if (returnContext) {
-    const arrivalVector = asString(returnContext["arrivalVector"], "between worlds");
+    const arrivalVector = asString(returnContext["arrivalVector"], "here");
     if (!message) {
-      // the opener, derived from the prior arrival vector
       return {
         message: `Last time, you were ${arrivalVector}. What changed?`,
-        insight: `Return opener for prior vector "${arrivalVector}".`,
+        insight: `Return opener (prior vector "${arrivalVector}").`,
         detectedThemes: [],
         coherenceDelta: 0,
         memoryWrites: [],
@@ -43,10 +36,9 @@ function mockRezzie(request: AgentRunRequest): SoulSeedAgentOutput {
         suggestedNextChamber: null,
       };
     }
-    // the answer — a delta memory that evolves the snapshot
     return {
-      message: "Something moved, then. I'll hold the new shape with the old.",
-      insight: `Between visits, the user named a change from "${arrivalVector}".`,
+      message: "Something moved, then.",
+      insight: "User named a change on return.",
       detectedThemes: ["return", "change"],
       coherenceDelta: 0.1,
       memoryWrites: [
@@ -63,67 +55,57 @@ function mockRezzie(request: AgentRunRequest): SoulSeedAgentOutput {
     };
   }
 
-  if (chamber === "identity-seed") {
-    const vector = asString(request.input.formData?.["arrivalVector"], "unknown");
+  // A single-choice form (e.g. an arrival vector) — reflect + record it.
+  const choice = formData["arrivalVector"];
+  if (typeof choice === "string") {
     return {
-      message: `Okay. ${vector} is heavier than it looks.`,
-      insight: `User arrived in the "${vector}" frame.`,
-      detectedThemes: [vector],
-      coherenceDelta: vector === "unknown" ? 0 : 0.05,
+      message: `Okay — ${choice}.`,
+      insight: `User chose "${choice}".`,
+      detectedThemes: [choice],
+      coherenceDelta: choice === "unknown" ? 0 : 0.05,
       memoryWrites: [
         {
           scope: "narrative",
-          content: `User arrived as "${vector}".`,
-          contentJson: { arrivalVector: vector },
+          content: `Arrived as "${choice}".`,
+          contentJson: { arrivalVector: choice },
           importance: 0.85,
         },
-        { scope: "state", content: `Current frame: ${vector}.`, contentJson: null, importance: 0.7 },
+        { scope: "state", content: `Current frame: ${choice}.`, contentJson: null, importance: 0.7 },
       ],
-      statePatch: { emergencePressure: emergencePressure ?? 0, custom: { arrivalVector: vector } },
+      statePatch: { custom: { arrivalVector: choice } },
       suggestedNextQuestion: null,
       suggestedNextChamber: null,
     };
   }
 
-  if (chamber === "threshold") {
+  // Freeform reflection.
+  if (message) {
     return {
-      message: "You look like you're between worlds.",
-      insight: "User arrived at the threshold.",
-      detectedThemes: ["liminal"],
-      coherenceDelta: 0,
-      memoryWrites: [
-        { scope: "event", content: "Arrived at threshold.", contentJson: null, importance: 0.1 },
-      ],
+      message: "I hear the shape of that.",
+      insight: "User reflected.",
+      detectedThemes: [],
+      coherenceDelta: 0.1,
+      memoryWrites: [{ scope: "state", content: message.slice(0, 280), contentJson: null, importance: 0.6 }],
       statePatch: {},
       suggestedNextQuestion: null,
       suggestedNextChamber: null,
     };
   }
 
-  // present-state / memory-root / trajectory-branch — generic grounded mirror
+  // Chamber just opened, no input — echo the chamber's own opener.
   return {
-    message: message ? "I hear the shape of that." : "Take your time.",
-    insight: `User responded in ${chamber}.`,
+    message: chamberIntro,
+    insight: "Chamber opened.",
     detectedThemes: [],
-    coherenceDelta: message ? 0.1 : 0,
-    memoryWrites: message
-      ? [
-          {
-            scope: chamber === "trajectory-branch" ? "trajectory" : "state",
-            content: message.slice(0, 280),
-            contentJson: null,
-            importance: 0.6,
-          },
-        ]
-      : [],
-    statePatch: emergencePressure !== undefined ? { emergencePressure } : {},
+    coherenceDelta: 0,
+    memoryWrites: [],
+    statePatch: {},
     suggestedNextQuestion: null,
     suggestedNextChamber: null,
   };
 }
 
-function mockCoach(request: AgentRunRequest): CoachingAgentOutput {
-  void request;
+function mockSynthesis(): CoachingAgentOutput {
   return {
     message: "Here's what I'm seeing. Read it once before you decide what to do with it.",
     snapshot: {
@@ -136,28 +118,18 @@ function mockCoach(request: AgentRunRequest): CoachingAgentOutput {
       hurl: "hurl://soulseed/living-invitation/state-1/coherence-000",
       deeperTrajectoryTeaser: null,
     },
-    insight: "User reached the Living Invitation; Snapshot composed from available signal.",
+    insight: "Reached the synthesis chamber; Snapshot composed from available signal.",
     detectedThemes: [],
     coherenceDelta: 0.15,
     memoryWrites: [
-      {
-        scope: "narrative",
-        content: "User crystallized a first SoulSeed Snapshot.",
-        contentJson: null,
-        importance: 0.9,
-      },
-      {
-        scope: "artifact",
-        content: "SoulSeed Snapshot generated.",
-        contentJson: { summary: "first run" },
-        importance: 0.7,
-      },
+      { scope: "narrative", content: "Crystallized a first Snapshot.", contentJson: null, importance: 0.9 },
+      { scope: "artifact", content: "Snapshot generated.", contentJson: { summary: "first run" }, importance: 0.7 },
     ],
     statePatch: { custom: { completedFlow: true } },
     returnSeed: "Come back when something changes. I'll ask you what.",
   };
 }
 
-export function mockAgentOutput(request: AgentRunRequest): SoulSeedAgentOutput | CoachingAgentOutput {
-  return request.agentKey === "coach" ? mockCoach(request) : mockRezzie(request);
+export function mockAgentOutput(ctx: MockContext): SoulSeedAgentOutput | CoachingAgentOutput {
+  return ctx.outputKind === "synthesis" ? mockSynthesis() : mockAgent(ctx.request, ctx.chamberIntro);
 }

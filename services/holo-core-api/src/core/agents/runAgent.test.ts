@@ -81,6 +81,24 @@ describe("runAgent — malformed model output", () => {
   });
 });
 
+describe("runAgent — provider error (transient outage)", () => {
+  it("degrades to the safe fallback instead of throwing when the router throws", async () => {
+    const { repo, agentRuns } = makeFakeRepo();
+    const throwingRouter: ModelRouter = {
+      model: "down",
+      generate: () => Promise.reject(new Error("provider returned 502")),
+    };
+
+    // must NOT reject — a model outage cannot break the user's journey
+    const res = await runAgent(repo, request(), { router: throwingRouter });
+
+    expect(res.usedFallback).toBe(true);
+    expect(res.model).toBe("down+fallback");
+    expect(SoulSeedAgentOutputSchema.safeParse(res.output).success).toBe(true);
+    expect(agentRuns).toHaveLength(1); // run still recorded
+  });
+});
+
 describe("runAgent — unknown agent", () => {
   it("rejects an agent not in the registry", async () => {
     const { repo } = makeFakeRepo();

@@ -148,6 +148,9 @@ importers:
 
   packages/product-manifests:
     dependencies:
+      '@holo/agent-prompts':
+        specifier: workspace:*
+        version: link:../agent-prompts
       '@holo/contracts':
         specifier: workspace:*
         version: link:../contracts

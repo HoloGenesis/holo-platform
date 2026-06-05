@@ -11,7 +11,9 @@ so there is **one deployment** (one Vercel project) serving both the UI and `/v1
 
 ## 0. Prerequisites
 
-- The repo is pushed to GitHub (CI runs on PR — see `.github/workflows/ci.yml`).
+- Deploys are **manual** by choice (no CI/CD). Before shipping, run the checks
+  locally — `pnpm -w typecheck && pnpm -w lint && pnpm -w build && pnpm -w test` —
+  then `vercel deploy --prod`.
 - A Supabase project (prod) and, ideally, a second (staging).
 - A Vercel account with access to the GitHub repo.
 - Optional for v1: Anthropic key (live agent), Stripe keys (live payments). Both

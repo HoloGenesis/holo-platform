@@ -44,3 +44,9 @@ PROJECT_MEMORY.md
 03_Section_Log.md
 05_COWORK_INSTRUCTIONS.md
 CLAUDE.md
+
+# Vercel (local link/build artifacts)
+.vercel
+
+# Claude Code local machine settings (per-developer; never shared)
+.claude/settings.local.json

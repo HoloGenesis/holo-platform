@@ -29,7 +29,6 @@ describe("startSession", () => {
 
   it("rejects an unknown product", async () => {
     const { repo } = makeFakeRepo();
-    // @ts-expect-error — exercising a runtime guard with an invalid product key
     await expect(startSession(repo, { productKey: "nope" })).rejects.toThrow();
   });
 });

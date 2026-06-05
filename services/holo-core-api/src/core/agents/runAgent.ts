@@ -1,5 +1,4 @@
 import type { AgentRunRequest, CoachingAgentOutput, SoulSeedAgentOutput } from "@holo/contracts";
-import { composePrompt } from "@holo/agent-prompts";
 import type { CoreRepo } from "../../repo";
 import { getContext } from "../memory";
 import { getManifest } from "../manifests";
@@ -50,13 +49,14 @@ export async function runAgent(
   request: AgentRunRequest,
   options: RunAgentOptions = {}
 ): Promise<RunAgentResult> {
-  const agent = getAgent(request.agentKey); // throws CoreError for unknown agents
-  const router = options.router ?? createModelRouter();
   const manifest = getManifest(request.productKey);
+  const agent = getAgent(manifest, request.agentKey); // throws CoreError for unknown agents
+  const router = options.router ?? createModelRouter(agent.mode);
 
   // 1. build context — pull memory via core/memory.getContext (cross-product)
   const chamber = manifest.chambers.find((c) => c.key === request.chamberKey);
-  const scopes = chamber?.memoryReadScopes ?? agent.defaultReadScopes;
+  const scopes = chamber?.memoryReadScopes ?? agent.readScopes;
+  const chamberIntro = chamber?.prompts.intro ?? "";
   const ctx = await getContext(repo, {
     userId: request.userId,
     productKey: request.productKey,
@@ -64,13 +64,12 @@ export async function runAgent(
     scopes,
   });
 
-  // 2. load + compose the prompt (never inlined here)
+  // 2. assemble the system prompt from the SKIN's manifest (the skin owns its voice)
   const isReturning = Boolean(request.context?.returnContext);
-  const systemPrompt = composePrompt({
-    agent: agent.promptAgent,
-    chamberKey: request.chamberKey,
-    isReturning,
-  });
+  const systemPrompt =
+    isReturning && agent.returnPrompt
+      ? `${agent.systemPrompt}\n\n---\n\n${agent.returnPrompt}`
+      : agent.systemPrompt;
   const userContent = JSON.stringify({
     input: request.input,
     memory: {
@@ -83,20 +82,28 @@ export async function runAgent(
     returnContext: request.context?.returnContext ?? null,
   });
 
-  // 3. generate → validate (retry once) → fallback
+  // 3. generate → validate (retry once) → fallback. A thrown provider/network
+  // error is caught and treated like an invalid attempt, so a transient model
+  // outage degrades to the safe fallback instead of failing the user's journey.
   let output: AgentOutput | null = null;
   for (let attempt = 0; attempt < 2 && output === null; attempt++) {
-    const raw = await router.generate({
-      systemPrompt,
-      userContent,
-      request,
-      corrective: attempt === 1 ? CORRECTIVE : undefined,
-    });
-    output = validate(agent.outputSchema, raw);
+    try {
+      const raw = await router.generate({
+        systemPrompt,
+        userContent,
+        request,
+        outputKind: agent.outputKind,
+        chamberIntro,
+        corrective: attempt === 1 ? CORRECTIVE : undefined,
+      });
+      output = validate(agent.outputSchema, raw);
+    } catch {
+      output = null; // provider error — retry, then fall back below
+    }
   }
 
   const usedFallback = output === null;
-  const finalOutput: AgentOutput = output ?? fallbackOutput(request, manifest);
+  const finalOutput: AgentOutput = output ?? fallbackOutput(agent.outputKind, chamberIntro);
   const model = usedFallback ? `${router.model}+fallback` : router.model;
 
   // 4. persist the run
