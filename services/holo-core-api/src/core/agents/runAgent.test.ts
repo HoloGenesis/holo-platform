@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { SoulSeedAgentOutputSchema } from "@holo/contracts";
+import { CoachingAgentOutputSchema, HurlPathSchema, SoulSeedAgentOutputSchema } from "@holo/contracts";
 import type { AgentRunRequest } from "@holo/contracts";
 import { makeFakeRepo } from "../../testing/fakeRepo";
+import { startSession } from "../sessions";
 import { mockRouter } from "./modelRouter";
 import type { ModelRouter } from "./modelRouter";
 import { runAgent } from "./runAgent";
@@ -96,6 +97,53 @@ describe("runAgent — provider error (transient outage)", () => {
     expect(res.model).toBe("down+fallback");
     expect(SoulSeedAgentOutputSchema.safeParse(res.output).success).toBe(true);
     expect(agentRuns).toHaveLength(1); // run still recorded
+  });
+});
+
+describe("runAgent — synthesis HURL is engine-owned", () => {
+  it("stamps a valid minted HURL into the snapshot even when the model emits a garbage one", async () => {
+    const { repo } = makeFakeRepo();
+    const session = await startSession(repo, { productKey: "soulseed" });
+
+    // a well-formed synthesis output, but with an INVALID hurl the model "guessed"
+    const modelOutput = JSON.stringify({
+      message: "Here's what I'm seeing.",
+      snapshot: {
+        identitySignal: "a",
+        presentState: "b",
+        returningPattern: "c",
+        emergingTrajectory: "d",
+        firstInvitation: "e",
+        hurl: "NOT-A-VALID-HURL", // would fail HurlPathSchema without the engine stamp
+        deeperTrajectoryTeaser: null,
+      },
+      insight: "x",
+      detectedThemes: [],
+      coherenceDelta: 0.1,
+      memoryWrites: [],
+      statePatch: {},
+      returnSeed: "come back",
+    });
+
+    const res = await runAgent(
+      repo,
+      request({
+        userId: session.userId,
+        sessionId: session.sessionId,
+        chamberKey: "living-invitation",
+        agentKey: "coach",
+        input: { message: "I'm ready." },
+      }),
+      { router: fixedRouter([modelOutput], "synth") }
+    );
+
+    expect(res.usedFallback).toBe(false); // not a fallback — the bad hurl was repaired
+    const parsed = CoachingAgentOutputSchema.safeParse(res.output);
+    expect(parsed.success).toBe(true);
+    const hurl = (res.output as { snapshot: { hurl: string } }).snapshot.hurl;
+    expect(HurlPathSchema.safeParse(hurl).success).toBe(true);
+    expect(hurl).not.toBe("NOT-A-VALID-HURL");
+    expect(hurl).toMatch(/^hurl:\/\/soulseed\/living-invitation\//);
   });
 });
 

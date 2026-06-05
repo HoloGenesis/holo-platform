@@ -2,6 +2,7 @@ import { ProductManifestSchema } from "@holo/contracts";
 import type { Holon, ProductManifest } from "@holo/contracts";
 import {
   COACH_RETURN_APPENDIX,
+  COACH_SYNTHESIS_INSTRUCTION,
   COACH_SYSTEM_PROMPT,
   REZZIE_RETURN_APPENDIX,
   REZZIE_SYSTEM_PROMPT,
@@ -42,7 +43,7 @@ const manifest: ProductManifest = {
     },
     coach: {
       role: "Synthesizing presence at the Living Invitation (chamber 6)",
-      systemPrompt: COACH_SYSTEM_PROMPT,
+      systemPrompt: `${COACH_SYSTEM_PROMPT}\n\n---\n\n${COACH_SYNTHESIS_INSTRUCTION}`,
       returnPrompt: COACH_RETURN_APPENDIX,
       output: "synthesis",
       readScopes: ["profile", "narrative", "state", "trajectory", "event"],
