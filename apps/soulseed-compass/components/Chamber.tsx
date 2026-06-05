@@ -8,6 +8,7 @@ import { EmailCapture } from "./EmailCapture";
 import { HurlCard } from "./HurlCard";
 import { RezziePanel } from "./RezziePanel";
 import { SoulSeedArtifact } from "./SoulSeedArtifact";
+import { WhatNow } from "./WhatNow";
 
 interface ChamberProps {
   slot: ChamberSlot;
@@ -89,10 +90,16 @@ export function Chamber({ slot }: ChamberProps) {
         </div>
       )}
 
-      {/* Living Invitation (terminal): the Snapshot + HURL. */}
+      {/* Living Invitation (terminal): orientation → Snapshot → what now → HURL → save. */}
       {isTerminal && (
         <div className="flex flex-col gap-4">
+          <p className="text-sm leading-relaxed text-neutral-400">
+            You reached the end of the scroll. Here&apos;s your{" "}
+            <span className="gold-text">SoulSeed Snapshot</span> — a reading of where you are right
+            now, drawn entirely from what you told the compass. Nothing here was invented.
+          </p>
           <SoulSeedArtifact snapshot={snapshot} status={artifactStatus} error={artifactError} />
+          <WhatNow invitation={snapshot?.firstInvitation} />
           <HurlCard hurl={hurl} />
           <EmailCapture />
         </div>

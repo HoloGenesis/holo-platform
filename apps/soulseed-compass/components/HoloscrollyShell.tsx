@@ -143,6 +143,12 @@ export function HoloscrollyShell() {
               <span className="text-[11px] tracking-wide text-gold/50">{greeting}</span>
             )}
           </div>
+          {isThreshold && (
+            <p className="text-xs leading-relaxed text-neutral-500">
+              A short guided reflection — six questions, then a snapshot of where you are right now.
+              Yours to keep, and to return to as things change.
+            </p>
+          )}
           <ProgressRail chambers={railChambers} currentKey={currentChamber} progress={progress} />
         </header>
 

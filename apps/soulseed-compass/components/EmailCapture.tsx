@@ -15,7 +15,8 @@ export function EmailCapture() {
     return (
       <div className="glass rounded-2xl p-4">
         <p className="text-sm text-neutral-300">
-          Saved to <span className="gold-text">{captured}</span>. Your HURL will find you.
+          Saved to <span className="gold-text">{captured}</span>. To come back, use your return link
+          below — that&apos;s what reopens this.
         </p>
       </div>
     );
@@ -28,6 +29,9 @@ export function EmailCapture() {
       <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-neutral-500">
         Save my SoulSeed
       </label>
+      <p className="mb-3 text-xs text-neutral-500">
+        Optional. Your return link below works without it — this just keeps your SoulSeed on file.
+      </p>
       <div className="flex gap-2">
         <input
           type="email"
