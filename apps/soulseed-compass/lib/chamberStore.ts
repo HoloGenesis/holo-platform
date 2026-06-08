@@ -80,6 +80,7 @@ interface ChamberStore {
   // chamber 6 artifact
   artifactStatus: "idle" | "generating" | "done" | "error";
   snapshot: SoulSeedSnapshot | null;
+  artifactId: string | null; // id of the persisted Snapshot row (for the share image URL)
   returnView: ReturnView | null; // "what moved" diff, present only on a return visit
   artifactError: string | null;
 
@@ -110,6 +111,7 @@ interface ChamberStore {
   generateArtifact: () => Promise<void>;
   enterByHurl: (path: string) => Promise<void>;
   submitReturn: (message: string) => Promise<void>;
+  shareSnapshot: (method: "copy" | "image") => Promise<void>;
   loadEntitlements: () => Promise<void>;
   buyAddon: () => Promise<void>;
 }
@@ -137,6 +139,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
 
   artifactStatus: "idle",
   snapshot: null,
+  artifactId: null,
   returnView: null,
   artifactError: null,
 
@@ -222,6 +225,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
       sessionState: null,
       artifactStatus: "idle",
       snapshot: null,
+      artifactId: null,
       returnView: null,
       artifactError: null,
       emailStatus: "idle",
@@ -356,6 +360,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
         returnAnswered: true,
         returnReflection: output.message,
         snapshot: artifact.contentJson,
+        artifactId: artifact.artifactId,
         returnView: artifact.returnView ?? null,
         artifactStatus: "done",
         hurl: artifact.hurl,
@@ -379,6 +384,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
       set({
         artifactStatus: "done",
         snapshot: result.contentJson,
+        artifactId: result.artifactId,
         returnView: result.returnView ?? null,
         hurl: result.hurl,
       });
@@ -387,6 +393,23 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
         artifactStatus: "error",
         artifactError: err instanceof Error ? err.message : "Could not compose the Snapshot.",
       });
+    }
+  },
+
+  shareSnapshot: async (method) => {
+    const { userId, sessionId } = get();
+    if (!userId || !sessionId) return;
+    try {
+      await holo.events.write({
+        userId,
+        sessionId,
+        productKey: PRODUCT_KEY,
+        chamberKey: "living-invitation",
+        eventType: "snapshot_shared",
+        payload: { method },
+      });
+    } catch {
+      // analytics is best-effort — never surface a share-tracking failure
     }
   },
 

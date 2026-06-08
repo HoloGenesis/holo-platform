@@ -134,6 +134,8 @@ export interface CoreRepo {
   upsertArtifact(input: UpsertArtifactInput): Promise<{ id: string }>;
   priorArtifacts(userId: string, limit: number): Promise<ArtifactRecord[]>;
   latestArtifactTitle(userId: string): Promise<string | null>;
+  /** Fetch a single artifact by id (public read — the share image route). */
+  getArtifactById(id: string): Promise<ArtifactRecord | null>;
 
   // agent runs
   insertAgentRun(input: InsertAgentRunInput): Promise<{ id: string }>;

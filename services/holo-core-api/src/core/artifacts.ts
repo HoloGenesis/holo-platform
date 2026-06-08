@@ -1,6 +1,7 @@
 import type {
   ArtifactCreateRequest,
   ArtifactCreateResponse,
+  ArtifactRecord,
   HurlPath,
   MemoryRecord,
   ProductKey,
@@ -118,4 +119,9 @@ export async function createArtifact(
     hurl,
     ...(returnView ? { returnView } : {}),
   };
+}
+
+/** Fetch a stored artifact by id. Public read — backs the share image route. */
+export async function getArtifact(repo: CoreRepo, id: string): Promise<ArtifactRecord | null> {
+  return repo.getArtifactById(id);
 }

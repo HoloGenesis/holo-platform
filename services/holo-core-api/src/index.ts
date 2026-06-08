@@ -17,7 +17,7 @@ export { createPgRepo, getRepo } from "./pgRepo";
 export { startSession, getSession, resumeSession } from "./core/sessions";
 export { writeEvent } from "./core/events";
 export { upsertMemory, getContext } from "./core/memory";
-export { createArtifact } from "./core/artifacts";
+export { createArtifact, getArtifact } from "./core/artifacts";
 export { diffSnapshots } from "./core/artifacts/diff";
 export { assembleReturnView } from "./core/artifacts/assembleReturn";
 export { setEmail, mergeUser } from "./core/users";

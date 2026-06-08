@@ -1,4 +1,5 @@
 import type { SoulSeedSnapshot } from "@holo/contracts";
+import { SnapshotShare } from "./SnapshotShare";
 
 interface SoulSeedArtifactProps {
   snapshot: SoulSeedSnapshot | null;
@@ -49,6 +50,8 @@ export function SoulSeedArtifact({ snapshot, status, error }: SoulSeedArtifactPr
           {snapshot.deeperTrajectoryTeaser}
         </p>
       )}
+
+      {snapshot && <SnapshotShare snapshot={snapshot} />}
     </div>
   );
 }

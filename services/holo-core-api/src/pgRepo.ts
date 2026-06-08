@@ -391,6 +391,37 @@ export function createPgRepo(): CoreRepo {
       return rows[0]?.title ?? null;
     },
 
+    async getArtifactById(id) {
+      const rows = await query<{
+        id: string;
+        user_id: string;
+        session_id: string | null;
+        product_key: string;
+        artifact_type: string;
+        title: string | null;
+        content_json: unknown;
+        file_url: string | null;
+        created_at: unknown;
+      }>(
+        `select id, user_id, session_id, product_key, artifact_type, title, content_json, file_url, created_at
+           from artifacts where id = $1`,
+        [id]
+      );
+      const row = rows[0];
+      if (!row) return null;
+      return ArtifactRecordSchema.parse({
+        id: row.id,
+        userId: row.user_id,
+        sessionId: row.session_id,
+        productKey: row.product_key,
+        artifactType: row.artifact_type,
+        title: row.title ?? "",
+        contentJson: (row.content_json as Record<string, unknown> | null) ?? {},
+        fileUrl: row.file_url ?? undefined,
+        createdAt: toIso(row.created_at),
+      });
+    },
+
     // ----- agent runs -----
     async insertAgentRun(input: InsertAgentRunInput) {
       const rows = await query<{ id: string }>(

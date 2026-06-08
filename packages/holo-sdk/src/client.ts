@@ -133,6 +133,8 @@ export interface HoloClient {
   };
   artifacts: {
     create(req: ArtifactCreateRequest): Promise<ArtifactCreateResponse>;
+    /** Public URL for the shareable Snapshot PNG (no fetch — a URL builder). */
+    imageUrl(artifactId: string): string;
   };
   entitlements: {
     check(userId: string): Promise<EntitlementsGetResponse>;
@@ -345,6 +347,8 @@ export function createHoloClient(options: HoloClientOptions): HoloClient {
           reqSchema: ArtifactCreateRequestSchema,
           resSchema: ArtifactCreateResponseSchema,
         }),
+      imageUrl: (artifactId) =>
+        `${base}/v1/artifacts/${encodeURIComponent(artifactId)}/image`,
     },
     entitlements: {
       check: (userId) =>

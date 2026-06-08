@@ -281,6 +281,9 @@ export function makeFakeRepo(): FakeRepo {
     async latestArtifactTitle(userId) {
       return artifacts.find((a) => a.userId === userId)?.title ?? null;
     },
+    async getArtifactById(id) {
+      return artifacts.find((a) => a.id === id) ?? null;
+    },
 
     async insertAgentRun(input) {
       const id = randomUUID();
