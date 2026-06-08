@@ -1,4 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
+  "comment": "DOM lib + react-jsx are for the React Email template (notifications/templates).",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx"
+  },
   "include": ["src"]
 }

@@ -18,3 +18,4 @@ export * from "./orchestration-endpoints";
 export * from "./artifact-endpoints";
 export * from "./user-endpoints";
 export * from "./commerce-endpoints";
+export * from "./notification-endpoints";

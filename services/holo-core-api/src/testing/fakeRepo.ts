@@ -31,7 +31,7 @@ const isoForSeq = (seq: number): string => new Date(BASE_TIME + seq * 1000).toIS
 
 export interface FakeRepo {
   repo: CoreRepo;
-  users: Map<string, { id: string; email: string | null }>;
+  users: Map<string, { id: string; email: string | null; emailSentAt: string | null }>;
   sessions: Map<string, SessionRow & { seq: number }>;
   hurls: InsertHurlInput[];
   events: (InsertEventInput & { id: string; seq: number })[];
@@ -42,7 +42,7 @@ export interface FakeRepo {
 }
 
 export function makeFakeRepo(): FakeRepo {
-  const users = new Map<string, { id: string; email: string | null }>();
+  const users = new Map<string, { id: string; email: string | null; emailSentAt: string | null }>();
   const sessions = new Map<string, SessionRow & { seq: number }>();
   const hurls: InsertHurlInput[] = [];
   const events: (InsertEventInput & { id: string; seq: number })[] = [];
@@ -73,7 +73,7 @@ export function makeFakeRepo(): FakeRepo {
   const repo: CoreRepo = {
     async createAnonUser() {
       const id = randomUUID();
-      users.set(id, { id, email: null });
+      users.set(id, { id, email: null, emailSentAt: null });
       return { id };
     },
     async userExists(id) {
@@ -84,6 +84,13 @@ export function makeFakeRepo(): FakeRepo {
       if (!user) return null;
       user.email = email;
       return { id: user.id, email: user.email };
+    },
+    async getUserEmailSentAt(userId) {
+      return users.get(userId)?.emailSentAt ?? null;
+    },
+    async markUserEmailSent(userId, sentAt) {
+      const user = users.get(userId);
+      if (user) user.emailSentAt = sentAt;
     },
     async mergeUser(from, into) {
       if (from === into) return { ok: true, note: "noop" };

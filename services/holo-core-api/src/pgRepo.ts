@@ -96,6 +96,19 @@ export function createPgRepo(): CoreRepo {
       return rows[0] ?? null;
     },
 
+    async getUserEmailSentAt(userId) {
+      const rows = await query<{ email_sent_at: unknown }>(
+        "select email_sent_at from users where id = $1",
+        [userId]
+      );
+      const value = rows[0]?.email_sent_at ?? null;
+      return value == null ? null : toIso(value);
+    },
+
+    async markUserEmailSent(userId, sentAt) {
+      await query("update users set email_sent_at = $2 where id = $1", [userId, sentAt]);
+    },
+
     async mergeUser(from, into) {
       // delegates to the Postgres merge_user() function (single transaction)
       const rows = await query<{

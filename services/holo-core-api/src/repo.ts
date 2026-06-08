@@ -81,6 +81,10 @@ export interface CoreRepo {
   createAnonUser(): Promise<{ id: string }>;
   userExists(id: string): Promise<boolean>;
   setUserEmail(userId: string, email: string): Promise<{ id: string; email: string | null } | null>;
+  /** Last HURL-invitation send time (ISO), or null if never sent. */
+  getUserEmailSentAt(userId: string): Promise<string | null>;
+  /** Stamp the last successful HURL-invitation send (ISO timestamp). */
+  markUserEmailSent(userId: string, sentAt: string): Promise<void>;
   mergeUser(
     from: string,
     into: string

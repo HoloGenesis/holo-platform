@@ -19,6 +19,8 @@ export { writeEvent } from "./core/events";
 export { upsertMemory, getContext } from "./core/memory";
 export { createArtifact } from "./core/artifacts";
 export { setEmail, mergeUser } from "./core/users";
+export { sendHurlInvitation, emailMode, returnUrlFor } from "./core/notifications/email";
+export type { HurlSender, SendHurlInvitationOptions } from "./core/notifications/email";
 export { createCheckout, handleWebhook, getEntitlements, paymentsEnabled } from "./core/commerce";
 export { getManifest } from "./core/manifests";
 export { mintHurl, mintAndPersistHurl, resolveHurl } from "./core/hurl";
