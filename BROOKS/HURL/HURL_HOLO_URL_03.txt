@@ -1,0 +1,8 @@
+# Source: PERPLEXITY-BROOKS/HURL (HOLO URL).md
+# Block: 3
+
+hurl://immersive-vr/holocoach/
+  negotiation-trainer/
+  scenario-boardroom?
+  hit-test=enabled&
+  hand-tracking=true

@@ -1,0 +1,5 @@
+# Source: PERPLEXITY-BROOKS/HURL (HOLO URL).md
+# Block: 1
+
+holo://user.brooks/consciousness.state/session.12345/
+  moment.timestamp/insight.fractal-depth-3

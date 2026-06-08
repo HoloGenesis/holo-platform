@@ -1,0 +1,39 @@
+{
+  "name": "HOLOSCROLLY_MOVE_REGISTRY",
+  "version": "0.1.0",
+  "moves": [
+    {
+      "id": "ENGINE_INTERSECTION_SUMMONING"
+    },
+    {
+      "id": "ENGINE_SCROLL_LINKED_TIMELINE"
+    },
+    {
+      "id": "PIN_STICKY_GRAPHIC_STEP"
+    },
+    {
+      "id": "REVEAL_LAYER_PEEL"
+    },
+    {
+      "id": "AUTHOR_CLOSEREAD_GLYPH"
+    },
+    {
+      "id": "SYNC_SCROLL_TO_3D_SCENE"
+    },
+    {
+      "id": "PERF_REDUCED_MOTION_MIRROR"
+    },
+    {
+      "id": "TOPO_HOLONIC_RECURSION"
+    },
+    {
+      "id": "HOLO_SOULSEED_BLOOM"
+    },
+    {
+      "id": "HOLO_RESONANCE_LOCK_IN"
+    },
+    {
+      "id": "HOLO_RETURN_EVENT"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Source: PERPLEXITY-BROOKS/HURL (HOLO URL).md
+# Block: 2
+
+holo://scaleholo.app/team/engineering/
+  alignment-session/2025-11-25?
+  participants=all&duration=30min

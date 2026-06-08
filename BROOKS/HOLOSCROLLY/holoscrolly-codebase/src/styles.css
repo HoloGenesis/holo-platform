@@ -1,0 +1,733 @@
+:root {
+  --bg: #06070b;
+  --ink: #f7efd9;
+  --muted: rgba(247, 239, 217, 0.72);
+  --faint: rgba(247, 239, 217, 0.12);
+  --gold: #d8b45c;
+  --gold-soft: rgba(216, 180, 92, 0.18);
+  --violet: rgba(170, 94, 255, 0.24);
+  --cyan: rgba(65, 220, 255, 0.18);
+  --green: rgba(80, 255, 155, 0.16);
+  --panel: rgba(255, 255, 255, 0.07);
+  --panel-strong: rgba(255, 255, 255, 0.12);
+  --line: rgba(216, 180, 92, 0.36);
+  --radius: 30px;
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 50% 0%, var(--gold-soft), transparent 30rem),
+    radial-gradient(circle at 5% 35%, var(--violet), transparent 32rem),
+    radial-gradient(circle at 90% 65%, var(--cyan), transparent 34rem),
+    linear-gradient(180deg, #05060a, #11131b 35%, #06070b 100%);
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+.progress-spine {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100vh;
+  background: rgba(255,255,255,0.06);
+  z-index: 20;
+}
+
+.progress-spine__bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--gold), #fff0bc);
+  box-shadow: 0 0 18px var(--gold);
+}
+
+.eyebrow {
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.hero {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 8vw;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero__halo {
+  position: absolute;
+  width: min(72vw, 760px);
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 35%, var(--gold-soft) 36%, transparent 39%),
+    radial-gradient(circle, transparent 55%, rgba(255,255,255,0.08) 56%, transparent 58%);
+  animation: breathe 7s ease-in-out infinite;
+}
+
+.hero__halo::before,
+.hero__halo::after {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  border-radius: 44% 56% 48% 52%;
+  border: 1px solid var(--line);
+  transform: rotate(30deg);
+}
+
+.hero__halo::after {
+  inset: 27%;
+  transform: rotate(94deg);
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(0.96) rotate(0deg); opacity: .6; }
+  50% { transform: scale(1.04) rotate(8deg); opacity: 1; }
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 11vw, 9rem);
+  line-height: 0.86;
+  letter-spacing: -0.085em;
+  margin: 0.2em 0;
+}
+
+.hero p {
+  max-width: 840px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+}
+
+.hero__question {
+  display: inline-flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-top: 3rem;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  color: var(--gold);
+}
+
+.sticky-chapter {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(320px, 1.18fr);
+  gap: 5vw;
+  padding: 12vh 7vw;
+  min-height: 100vh;
+  border-top: 1px solid rgba(255,255,255,0.09);
+}
+
+.sticky-chapter__visual {
+  position: sticky;
+  top: 10vh;
+  align-self: start;
+  min-height: 72vh;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.025));
+  box-shadow: 0 30px 100px rgba(0,0,0,0.34);
+  backdrop-filter: blur(18px);
+}
+
+.sticky-chapter__visual h2,
+.section-heading h2,
+.becoming-card h2,
+.footer h2 {
+  font-size: clamp(2.2rem, 5.5vw, 5.2rem);
+  letter-spacing: -0.065em;
+  line-height: 0.92;
+  margin: 0.18em 0;
+}
+
+.sticky-chapter__visual p,
+.section-heading p,
+.becoming-card p,
+.footer p {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.holo-sigil {
+  width: min(64vw, 310px);
+  aspect-ratio: 1;
+  margin: 3rem auto 0;
+  display: grid;
+  place-items: center;
+  transition: transform 240ms linear;
+}
+
+.holo-sigil__ring {
+  position: absolute;
+  width: min(64vw, 310px);
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(216,180,92,0.06), transparent 42%),
+    conic-gradient(from 0deg, transparent, rgba(216,180,92,0.45), transparent, rgba(80,220,255,0.35), transparent);
+  filter: drop-shadow(0 0 24px rgba(216, 180, 92, 0.25));
+}
+
+.holo-sigil__core {
+  position: relative;
+  width: 42%;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(6,7,11,0.72);
+  text-align: center;
+  color: var(--gold);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  padding: 0.8rem;
+}
+
+.sticky-chapter__steps {
+  display: grid;
+  gap: 36vh;
+  padding-bottom: 20vh;
+}
+
+.step-card {
+  min-height: 42vh;
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: var(--radius);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: var(--panel);
+  opacity: 0.38;
+  transform: translateY(24px) scale(0.985);
+  transition: opacity 380ms ease, transform 380ms ease, border-color 380ms ease, background 380ms ease;
+}
+
+.step-card--active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  border-color: var(--line);
+  background: var(--panel-strong);
+}
+
+.step-card__label {
+  color: var(--gold);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+}
+
+.step-card h3,
+.hdom-node h3,
+.move-card h3 {
+  font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+  letter-spacing: -0.045em;
+  margin: 0.45em 0;
+}
+
+.step-card p,
+.hdom-node p,
+.move-card p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.canon-grid-section,
+.moves-section,
+.becoming-section {
+  padding: 12vh 7vw;
+  border-top: 1px solid rgba(255,255,255,0.09);
+}
+
+.section-heading {
+  max-width: 920px;
+  margin-bottom: 3rem;
+}
+
+.canon-grid,
+.move-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1rem;
+}
+
+.hdom-node,
+.move-card,
+.hurl-panel {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  background: var(--panel);
+  padding: 1.35rem;
+}
+
+.hdom-node {
+  min-height: 330px;
+}
+
+.hdom-node__kind,
+.move-card__prefix {
+  display: inline-flex;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #06070b;
+  padding: 0.32rem 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.hdom-node__trajectory {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.becoming-card {
+  max-width: 1100px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 42px;
+  padding: clamp(2rem, 6vw, 5rem);
+  background:
+    radial-gradient(circle at 20% 10%, var(--gold-soft), transparent 28rem),
+    radial-gradient(circle at 82% 70%, var(--green), transparent 28rem),
+    linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.025));
+}
+
+.icon-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--gold);
+  margin-bottom: 2rem;
+}
+
+.hurl-panel {
+  margin-top: 2rem;
+  background: rgba(0,0,0,0.22);
+}
+
+.hurl-panel code {
+  display: block;
+  color: #fff0bc;
+  white-space: normal;
+  word-break: break-word;
+  padding: 1rem 0;
+  font-size: 1rem;
+}
+
+.move-card {
+  min-height: 295px;
+  transition: transform 260ms ease, border-color 260ms ease, background 260ms ease;
+}
+
+.move-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--line);
+  background: var(--panel-strong);
+}
+
+.move-card footer {
+  color: var(--gold);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  line-height: 1.5;
+}
+
+.footer {
+  min-height: 78vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 12vh 8vw;
+  border-top: 1px solid rgba(255,255,255,0.09);
+}
+
+.footer > * {
+  max-width: 940px;
+}
+
+@media (max-width: 860px) {
+  .progress-spine {
+    width: 4px;
+  }
+
+  .sticky-chapter {
+    grid-template-columns: 1fr;
+  }
+
+  .sticky-chapter__visual {
+    position: relative;
+    top: auto;
+    min-height: auto;
+  }
+
+  .sticky-chapter__steps {
+    gap: 18vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .step-card {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   v0.2 — Return Event, SoulSeed Compass, HDOM memory write-back
+   ============================================================ */
+
+.return-event,
+.soulseed {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.return-event__card,
+.soulseed__card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 1.75rem;
+  backdrop-filter: blur(8px);
+}
+
+.return-event__card h2,
+.soulseed__card h2 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  color: var(--ink);
+}
+
+.return-event__meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.return-event__form,
+.soulseed__card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+textarea,
+.soulseed__trunk {
+  width: 100%;
+  resize: vertical;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--faint);
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+}
+
+textarea:focus,
+.soulseed__trunk:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+button[type="submit"],
+.soulseed__commit,
+.return-event__form button {
+  align-self: flex-start;
+  cursor: pointer;
+  color: #0a0a0a;
+  background: linear-gradient(135deg, var(--gold), #f2d98a);
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.soulseed__commit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.return-event__ack,
+.soulseed__ack {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.soulseed__branches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.soulseed__branch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--faint);
+  border-radius: 18px;
+  padding: 1rem;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.soulseed__branch:hover {
+  border-color: var(--line);
+}
+
+.soulseed__branch.is-chosen {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold-soft) inset;
+}
+
+.soulseed__branch-title {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.soulseed__branch-invite {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hdom-memory {
+  margin-top: 1.5rem;
+  border-top: 1px dashed var(--line);
+  padding-top: 1rem;
+}
+
+.hdom-memory ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+/* Reduced-motion sovereignty: still the sigil and disable transitions. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .holo-sigil { transform: none !important; }
+  .soulseed__branch { transition: none; }
+}
+
+/* ============================================================
+   v0.3 — HOLOTORUS scroll-to-3D chamber + hydration badge
+   ============================================================ */
+
+.hero__active {
+  margin-top: 1rem;
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.torus-chamber {
+  position: relative;
+  /* The scroll-track gives the sticky scene room to be travelled through. */
+}
+
+.torus-chamber__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 clamp(1rem, 5vw, 5rem);
+  overflow: hidden;
+}
+
+.torus-chamber__canvas {
+  width: 100%;
+  height: 70vh;
+  display: block;
+}
+
+.torus-chamber__copy h2 {
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  margin: 0.4rem 0 0.8rem;
+}
+
+.torus-chamber__copy p {
+  color: var(--muted);
+}
+
+.torus-chamber__hint,
+.torus-chamber__spine {
+  margin-top: 1rem;
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.torus-chamber__scroll-track {
+  height: 180vh; /* scroll distance that maps to scene travel */
+}
+
+@media (max-width: 760px) {
+  .torus-chamber__sticky {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    text-align: center;
+  }
+  .torus-chamber__canvas { height: 44vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .torus-chamber__scroll-track { height: 0; }
+  .torus-chamber__sticky { position: relative; height: auto; padding-block: 3rem; }
+  .torus-chamber__canvas { height: 50vh; }
+}
+
+/* ============================================================
+   v0.4 — Holonic recursion + lazy torus fallback
+   ============================================================ */
+
+.torus-fallback {
+  display: grid;
+  place-items: center;
+  height: 60vh;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  margin: 2rem auto;
+  max-width: 1100px;
+}
+
+.recursion {
+  max-width: 920px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.25rem;
+}
+
+.recursion__frame {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 1.5rem;
+}
+
+.recursion__frame h3 {
+  margin: 0.4rem 0 0.6rem;
+  color: var(--gold);
+}
+
+.recursion__enter,
+.recursion__return {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0a0a0a;
+  background: linear-gradient(135deg, var(--gold), #f2d98a);
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.3rem;
+  font-weight: 600;
+}
+
+.recursion__inner {
+  margin-top: 1rem;
+  border-left: 2px solid var(--line);
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recursion__steps {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.recursion__step { color: var(--ink); }
+
+.recursion__step-title { font-weight: 700; display: block; }
+.recursion__step-body { color: var(--muted); font-size: 0.92rem; }
+
+.recursion__carry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.recursion__carry input {
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--faint);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+}
+
+.recursion__carry input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+.recursion__ack {
+  margin-top: 1rem;
+  color: var(--gold);
+  font-weight: 600;
+}
