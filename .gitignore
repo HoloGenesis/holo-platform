@@ -43,7 +43,16 @@ PROJECT_MEMORY.md
 02_Prompt_Templates.md
 03_Section_Log.md
 05_COWORK_INSTRUCTIONS.md
+06_Brooks_Feedback_Plan.md
+07_PRDv03_Reframe_Plan.md
 CLAUDE.md
+
+# Internal Cowork → Code drafts (the wired TS is the source of truth)
+packages/agent-prompts/drafts/
+packages/product-manifests/drafts/
+
+# Internal deploy notes (no code or doc references this; pure internal)
+docs/deploy.md
 
 # Vercel (local link/build artifacts)
 .vercel
