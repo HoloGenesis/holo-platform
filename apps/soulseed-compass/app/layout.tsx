@@ -4,7 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SoulSeed Compass",
-  description: "Product One — a thin HOLOSCROLLY front-end on HOLO Core.",
+  description:
+    "Your first living HOLOSCROLLY — a document that remembers you, evolves with you, and orients your becoming.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

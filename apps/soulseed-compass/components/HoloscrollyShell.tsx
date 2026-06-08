@@ -144,10 +144,16 @@ export function HoloscrollyShell() {
             )}
           </div>
           {isThreshold && (
-            <p className="text-xs leading-relaxed text-neutral-500">
-              A short guided reflection — six questions, then a snapshot of where you are right now.
-              Yours to keep, and to return to as things change.
-            </p>
+            <div className="flex flex-col gap-2 text-xs leading-relaxed text-neutral-500">
+              <p>
+                This is your first living HOLOSCROLLY — a document that remembers you, evolves with
+                you, and orients your becoming.
+              </p>
+              <p>
+                A short conversation, then a Snapshot drawn from what you told it. The HURL at the end
+                is how the document finds you again.
+              </p>
+            </div>
           )}
           <ProgressRail chambers={railChambers} currentKey={currentChamber} progress={progress} />
         </header>

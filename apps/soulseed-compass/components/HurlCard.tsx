@@ -38,9 +38,9 @@ export function HurlCard({ hurl }: HurlCardProps) {
       </div>
       <code className="break-all text-sm gold-text">{hurl ?? "hurl://soulseed/…"}</code>
       <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-        This is your save point — not a web page you open, but how the compass finds <em>you</em>{" "}
-        again. Come back with the link below, even months from now, on any device, and it picks up
-        where you left off and shows what&apos;s changed.
+        This is your continuation address — not a web page you open, but how the document finds{" "}
+        <em>you</em> again. Come back with the link below, even months from now, on any device, and
+        the SoulSeed picks up where you left off and shows what&apos;s changed since.
       </p>
 
       {returnLink && (

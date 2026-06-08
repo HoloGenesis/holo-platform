@@ -15,8 +15,8 @@ export function EmailCapture() {
     return (
       <div className="glass rounded-2xl p-4">
         <p className="text-sm text-neutral-300">
-          Saved to <span className="gold-text">{captured}</span>. To come back, use your return link
-          below — that&apos;s what reopens this.
+          Sent to <span className="gold-text">{captured}</span>. To come back, click the link in the
+          email — or use your return link below.
         </p>
       </div>
     );
@@ -27,10 +27,11 @@ export function EmailCapture() {
   return (
     <div className="glass rounded-2xl p-4">
       <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-neutral-500">
-        Save my SoulSeed
+        Email me my return link
       </label>
       <p className="mb-3 text-xs text-neutral-500">
-        Optional. Your return link below works without it — this just keeps your SoulSeed on file.
+        Optional. Your return link below works without it — this also emails the link so you
+        don&apos;t have to hold it in a tab.
       </p>
       <div className="flex gap-2">
         <input
@@ -47,7 +48,7 @@ export function EmailCapture() {
           onClick={() => void captureEmail(email)}
           className="rounded-xl border border-gold/30 bg-gold/15 px-4 py-2.5 text-sm font-medium text-gold-soft transition-all hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {status === "saving" ? "Saving…" : "Save my HURL"}
+          {status === "saving" ? "Sending…" : "Email my return link"}
         </button>
       </div>
       {status === "error" && <p className="mt-2 text-xs text-amber-400">Couldn&apos;t save. Try again.</p>}

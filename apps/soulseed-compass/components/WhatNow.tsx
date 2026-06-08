@@ -22,9 +22,9 @@ export function WhatNow({ invitation }: WhatNowProps) {
         </li>
         <li>
           <span className="text-gold/70">When something shifts — </span>
-          come back with your return link below. The compass remembers you and reflects what&apos;s
-          changed since today. That continuity is the point — it&apos;s not a one-time quiz, it&apos;s a
-          mirror you can return to.
+          come back with your return link below. The SoulSeed remembers you and reflects what&apos;s
+          changed since today. That continuity is the point — this isn&apos;t a one-time quiz,
+          it&apos;s a living document you can return to.
         </li>
       </ol>
     </div>

@@ -94,9 +94,9 @@ export function Chamber({ slot }: ChamberProps) {
       {isTerminal && (
         <div className="flex flex-col gap-4">
           <p className="text-sm leading-relaxed text-neutral-400">
-            You reached the end of the scroll. Here&apos;s your{" "}
-            <span className="gold-text">SoulSeed Snapshot</span> — a reading of where you are right
-            now, drawn entirely from what you told the compass. Nothing here was invented.
+            Here&apos;s your first <span className="gold-text">SoulSeed Snapshot</span> — a reading of
+            where you are right now, drawn entirely from what you told the compass. Nothing here was
+            invented. This is the document&apos;s first version. It will evolve as you do.
           </p>
           <SoulSeedArtifact snapshot={snapshot} status={artifactStatus} error={artifactError} />
           <WhatNow invitation={snapshot?.firstInvitation} />
