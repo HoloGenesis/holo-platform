@@ -18,6 +18,8 @@ export { startSession, getSession, resumeSession } from "./core/sessions";
 export { writeEvent } from "./core/events";
 export { upsertMemory, getContext } from "./core/memory";
 export { createArtifact } from "./core/artifacts";
+export { diffSnapshots } from "./core/artifacts/diff";
+export { assembleReturnView } from "./core/artifacts/assembleReturn";
 export { setEmail, mergeUser } from "./core/users";
 export { sendHurlInvitation, emailMode, returnUrlFor } from "./core/notifications/email";
 export type { HurlSender, SendHurlInvitationOptions } from "./core/notifications/email";

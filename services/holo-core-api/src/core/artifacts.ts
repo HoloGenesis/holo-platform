@@ -7,7 +7,9 @@ import type {
   SoulSeedSnapshot,
 } from "@holo/contracts";
 import { SoulSeedSnapshotSchema } from "@holo/contracts";
+import type { ReturnView } from "@holo/contracts";
 import type { CoreRepo } from "../repo";
+import { assembleReturnView } from "./artifacts/assembleReturn";
 import { mintAndPersistHurl } from "./hurl";
 import { getContext } from "./memory";
 import { upsertMemory } from "./memory";
@@ -79,6 +81,14 @@ export async function createArtifact(
   const snapshot = await assembleSnapshot(repo, input.userId, input.productKey, hurl);
   const title = titleFor(snapshot);
 
+  // Compute the return delta BEFORE overwriting — on a return the session is
+  // reused, so its existing artifact row is the prior Snapshot. null = first visit.
+  const returnView: ReturnView | null = await assembleReturnView(repo, {
+    userId: input.userId,
+    sessionId: input.sessionId,
+    snapshot,
+  });
+
   const { id } = await repo.upsertArtifact({
     userId: input.userId,
     sessionId: input.sessionId,
@@ -100,5 +110,12 @@ export async function createArtifact(
     importance: 0.7,
   });
 
-  return { artifactId: id, artifactType: ARTIFACT_TYPE, title, contentJson: snapshot, hurl };
+  return {
+    artifactId: id,
+    artifactType: ARTIFACT_TYPE,
+    title,
+    contentJson: snapshot,
+    hurl,
+    ...(returnView ? { returnView } : {}),
+  };
 }

@@ -5,6 +5,7 @@ import { EmailCapture } from "./EmailCapture";
 import { HurlCard } from "./HurlCard";
 import { RezziePanel } from "./RezziePanel";
 import { SoulSeedArtifact } from "./SoulSeedArtifact";
+import { WhatMoved } from "./WhatMoved";
 
 /** The return-visit threshold: recognition + the single "what changed?" question. */
 export function ReturnChamber() {
@@ -16,6 +17,7 @@ export function ReturnChamber() {
   const setDraft = useChamberStore((s) => s.setDraft);
   const turnError = useChamberStore((s) => s.turnError);
   const snapshot = useChamberStore((s) => s.snapshot);
+  const returnView = useChamberStore((s) => s.returnView);
   const hurl = useChamberStore((s) => s.hurl);
 
   return (
@@ -44,6 +46,7 @@ export function ReturnChamber() {
         />
       ) : (
         <div className="flex flex-col gap-4">
+          {returnView ? <WhatMoved view={returnView} /> : null}
           <SoulSeedArtifact snapshot={snapshot} status="done" />
           <HurlCard hurl={hurl} />
           <EmailCapture />

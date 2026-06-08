@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ChamberKey, SessionState, SoulSeedSnapshot } from "@holo/contracts";
+import type { ChamberKey, ReturnView, SessionState, SoulSeedSnapshot } from "@holo/contracts";
 import { getNextChamber } from "@holo/hdom";
 import { soulseedCompassManifest } from "@holo/product-manifests";
 import { holo } from "./holo";
@@ -80,6 +80,7 @@ interface ChamberStore {
   // chamber 6 artifact
   artifactStatus: "idle" | "generating" | "done" | "error";
   snapshot: SoulSeedSnapshot | null;
+  returnView: ReturnView | null; // "what moved" diff, present only on a return visit
   artifactError: string | null;
 
   // email capture (export chamber)
@@ -136,6 +137,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
 
   artifactStatus: "idle",
   snapshot: null,
+  returnView: null,
   artifactError: null,
 
   emailStatus: "idle",
@@ -220,6 +222,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
       sessionState: null,
       artifactStatus: "idle",
       snapshot: null,
+      returnView: null,
       artifactError: null,
       emailStatus: "idle",
       emailCaptured: null,
@@ -353,6 +356,7 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
         returnAnswered: true,
         returnReflection: output.message,
         snapshot: artifact.contentJson,
+        returnView: artifact.returnView ?? null,
         artifactStatus: "done",
         hurl: artifact.hurl,
       });
@@ -372,7 +376,12 @@ export const useChamberStore = create<ChamberStore>((set, get) => ({
     set({ artifactStatus: "generating", artifactError: null });
     try {
       const result = await holo.artifacts.create({ userId, sessionId, productKey: PRODUCT_KEY });
-      set({ artifactStatus: "done", snapshot: result.contentJson, hurl: result.hurl });
+      set({
+        artifactStatus: "done",
+        snapshot: result.contentJson,
+        returnView: result.returnView ?? null,
+        hurl: result.hurl,
+      });
     } catch (err) {
       set({
         artifactStatus: "error",
