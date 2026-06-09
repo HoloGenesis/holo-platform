@@ -1,5 +1,7 @@
 # PRD v0.3 — SoulSeed Compass™ as the Initial HOLOSCROLLY
 
+> **Sits beneath:** `docs/doctrine-the-cohering-is-the-product.md` (Doctrine v0.1 — what HOLO categorically *is*). This PRD specifies; the doctrine explains *why*.
+
 ## Pulse
 
 This PRD reframes the existing build correctly:

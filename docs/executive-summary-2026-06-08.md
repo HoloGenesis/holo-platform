@@ -1,5 +1,7 @@
 # Executive Update — SoulSeed Compass / holo-platform
 
+> **Sits beneath:** `docs/doctrine-the-cohering-is-the-product.md` (Doctrine v0.1 — landed 8 Jun PM, after this executive update).
+
 *Status brief for Brooks. Prepared 2026-06-08. Supersedes the framing (not the
 verified facts) of `docs/executive-summary.md` where the two differ.*
 

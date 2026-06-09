@@ -1,5 +1,7 @@
 # PRD v0.3 Engineering Addendum — SoulSeed Compass
 
+> **Sits beneath:** `docs/doctrine-the-cohering-is-the-product.md` (Doctrine v0.1). This addendum reconciles the PRD with the codebase; the doctrine names what the architecture is for.
+
 Prepared as a reconciliation layer between `docs/prd-v0.3-soulseed-compass.md`,
 the current codebase, and the 2026-06-08 executive summary.
 
