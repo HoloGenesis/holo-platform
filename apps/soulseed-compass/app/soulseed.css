@@ -1,0 +1,193 @@
+/* apps/soulseed-compass/app/soulseed.css — Dawn Glass global CSS (spec §2).
+   Verbatim from docs/dawn-glass-design-assets-v0.1.md §2, with one deviation:
+   the three font vars (--ss-display/--ss-ui/--ss-mono) are prefixed with their
+   next/font variable (set in layout.tsx) so the loaded webfonts actually apply;
+   the literal family names remain as fallbacks. Imported BEFORE globals.css so
+   the existing void/gold shell stays unchanged until S82+. */
+:root {
+  --ss-ink: #071014;
+  --ss-ink-soft: #111820;
+  --ss-dawn-white: #fff8ef;
+  --ss-warm-ivory: #f8eedc;
+  --ss-honey: #e8a84c;
+  --ss-honey-deep: #c97924;
+  --ss-amber: #ffb65c;
+  --ss-rose-gold: #e8b7a1;
+  --ss-coral: #ee8f73;
+  --ss-glass-blue: #9fd8ff;
+  --ss-glass-violet: #a98dff;
+  --ss-glass-cyan: #7be7f2;
+  --ss-muted: rgba(255, 248, 239, 0.72);
+  --ss-faint: rgba(255, 248, 239, 0.48);
+  --ss-glass-light: rgba(255, 248, 239, 0.12);
+  --ss-glass-mid: rgba(255, 248, 239, 0.18);
+  --ss-glass-dark: rgba(7, 16, 20, 0.56);
+  --ss-radius-lg: 32px;
+  --ss-radius-xl: 44px;
+  --ss-display: var(--font-ss-display), "Libre Baskerville", "Cormorant Garamond", Georgia, serif;
+  --ss-ui: var(--font-ss-ui), "Montserrat", "Inter", system-ui, sans-serif;
+  --ss-mono: var(--font-ss-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --ss-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--ss-ink);
+  color: var(--ss-dawn-white);
+  font-family: var(--ss-ui);
+}
+* { box-sizing: border-box; }
+
+.soulseed-page {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(232, 168, 76, 0.2), transparent 32%),
+    linear-gradient(180deg, rgba(7, 16, 20, 0.12), rgba(7, 16, 20, 0.82));
+}
+
+.soulseed-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+}
+
+.soulseed-bg img,
+.soulseed-bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.04);
+  transform: scale(1.02);
+}
+
+.soulseed-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(7, 16, 20, 0.72), rgba(7, 16, 20, 0.18) 52%, rgba(7, 16, 20, 0.42)),
+    linear-gradient(180deg, rgba(7, 16, 20, 0.08), rgba(7, 16, 20, 0.78));
+}
+
+.dawn-glass {
+  position: relative;
+  border: 1px solid rgba(255, 248, 239, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 248, 239, 0.16), rgba(255, 248, 239, 0.06)),
+    linear-gradient(180deg, rgba(7, 16, 20, 0.12), rgba(7, 16, 20, 0.42));
+  backdrop-filter: blur(28px) saturate(1.25);
+  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(232, 168, 76, 0.16),
+    0 24px 80px rgba(0, 0, 0, 0.36);
+}
+
+.dawn-glass::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0.72;
+  background:
+    linear-gradient(135deg, rgba(232, 168, 76, 0.52), transparent 28%),
+    linear-gradient(315deg, rgba(123, 231, 242, 0.38), transparent 30%),
+    linear-gradient(45deg, rgba(169, 141, 255, 0.24), transparent 32%);
+  mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  padding: 1px;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.iridescent-button {
+  border: 1px solid rgba(255, 248, 239, 0.32);
+  border-radius: 999px;
+  color: var(--ss-dawn-white);
+  background:
+    radial-gradient(circle at 22% 50%, rgba(255, 195, 102, 0.92), transparent 42%),
+    radial-gradient(circle at 82% 52%, rgba(123, 216, 255, 0.78), transparent 38%),
+    linear-gradient(90deg, rgba(201, 121, 36, 0.92), rgba(169, 141, 255, 0.66), rgba(77, 183, 224, 0.78));
+  box-shadow:
+    0 0 36px rgba(232, 168, 76, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  transition: transform 240ms var(--ss-ease), box-shadow 240ms var(--ss-ease);
+}
+
+.iridescent-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 52px rgba(232, 168, 76, 0.46),
+    0 0 42px rgba(123, 216, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+.ghost-button {
+  border: 1px solid rgba(255, 248, 239, 0.24);
+  border-radius: 999px;
+  color: var(--ss-dawn-white);
+  background: rgba(255, 248, 239, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ss-display { font-family: var(--ss-display); font-weight: 400; letter-spacing: -0.045em; }
+.ss-ui { font-family: var(--ss-ui); }
+.ss-mono { font-family: var(--ss-mono); }
+
+.whorl {
+  --whorl-size: 240px;
+  position: relative;
+  width: var(--whorl-size);
+  height: var(--whorl-size);
+  border-radius: 50%;
+  opacity: 0.9;
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(232, 168, 76, 0.02) 0,
+      rgba(232, 168, 76, 0.02) 9px,
+      rgba(232, 168, 76, 0.26) 10px,
+      rgba(232, 168, 76, 0.02) 11px
+    );
+  filter: drop-shadow(0 0 32px rgba(232, 168, 76, 0.38));
+  animation: whorlBreathe 5.5s var(--ss-ease) infinite alternate;
+}
+
+.whorl::after {
+  content: "";
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 90deg,
+      transparent,
+      rgba(232, 168, 76, 0.88),
+      rgba(255, 248, 239, 0.2),
+      transparent,
+      rgba(123, 216, 255, 0.36),
+      transparent
+    );
+  filter: blur(1px);
+  animation: whorlTurn 16s linear infinite;
+}
+
+@keyframes whorlBreathe {
+  from { transform: scale(0.96); opacity: 0.72; }
+  to   { transform: scale(1.04); opacity: 1; }
+}
+@keyframes whorlTurn { to { transform: rotate(360deg); } }
+
+.screen-enter { animation: screenEnter 700ms var(--ss-ease) both; }
+@keyframes screenEnter {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}

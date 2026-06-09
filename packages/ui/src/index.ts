@@ -1,2 +1,2 @@
-// @holo/ui — shared UI primitives used by product front-ends. Empty for S0.
-export {};
+// @holo/ui — shared UI primitives + design tokens used by product front-ends.
+export { soulSeedTokens } from "./tokens/soulseed.tokens";
