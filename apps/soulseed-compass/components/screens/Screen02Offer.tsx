@@ -7,7 +7,7 @@ import { useSprint10Store } from "../../lib/sprint10Store";
 // SoulSeed session via the SDK (anonymous-first, no email) and advances to 3.
 const outcomes: ReadonlyArray<readonly [string, string, string]> = [
   ["Identity Pattern", "Your core blueprint", "◎"],
-  ["Octopus Map", "How you think & relate", "✣"],
+  ["8-Domain Signal", "Your first signal across the 8 domains", "✣"],
   ["ANG3L Profile", "How AI meets you", "✦"],
   ["Return Link", "Your link back home", "↗"],
 ];

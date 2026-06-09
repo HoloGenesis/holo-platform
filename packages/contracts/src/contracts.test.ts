@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { AgentRunRequestSchema, ProductManifestSchema } from "./index";
+import {
+  AgentRunRequestSchema,
+  CoheringInputSchema,
+  CoheringOutputSchema,
+  ProductManifestSchema,
+} from "./index";
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
 const SESSION_ID = "22222222-2222-4222-8222-222222222222";
@@ -27,6 +32,56 @@ describe("AgentRunRequestSchema", () => {
       agentKey: "wizard", // not in the AgentKey enum
     };
     expect(() => AgentRunRequestSchema.parse(invalid)).toThrow();
+  });
+});
+
+describe("CoheringInputSchema", () => {
+  it("parses a valid CoheringInput (with optional correctionOf)", () => {
+    const parsed = CoheringInputSchema.parse({
+      userId: USER_ID,
+      sessionId: SESSION_ID,
+      answer: "I'm a builder who wants clarity before depth.",
+      correctionOf: "earlier answer",
+    });
+    expect(parsed.answer).toContain("builder");
+    expect(parsed.correctionOf).toBe("earlier answer");
+  });
+
+  it("throws on an empty answer", () => {
+    expect(() =>
+      CoheringInputSchema.parse({ userId: USER_ID, sessionId: SESSION_ID, answer: "" })
+    ).toThrow();
+  });
+});
+
+describe("CoheringOutputSchema", () => {
+  const valid = {
+    recognitionLine: "You arrive wanting proof before symbol.",
+    supportingLine: "Clarity first keeps your momentum.",
+    chamberVectors: {
+      threshold: "Arrives skeptical, value-seeking",
+      identitySeed: "Builder / systems thinker",
+      presentState: "Seeking clarity before depth",
+      memoryRoot: "Returns to meaning over noise",
+      trajectoryBranch: "Toward less proving, more building",
+      livingInvitation: "Name one priority; define enough",
+    },
+    confidence: 0.72,
+  };
+
+  it("parses a valid CoheringOutput", () => {
+    const parsed = CoheringOutputSchema.parse(valid);
+    expect(parsed.chamberVectors.identitySeed).toContain("Builder");
+    expect(parsed.confidence).toBeCloseTo(0.72);
+  });
+
+  it("throws when a chamber vector is missing", () => {
+    const invalid: Record<string, unknown> = {
+      ...valid,
+      chamberVectors: { ...valid.chamberVectors },
+    };
+    delete (invalid.chamberVectors as Record<string, unknown>).memoryRoot;
+    expect(() => CoheringOutputSchema.parse(invalid)).toThrow();
   });
 });
 

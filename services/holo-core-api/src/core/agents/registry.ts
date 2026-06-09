@@ -1,4 +1,8 @@
-import { CoachingAgentOutputSchema, SoulSeedAgentOutputSchema } from "@holo/contracts";
+import {
+  CoachingAgentOutputSchema,
+  CoheringOutputSchema,
+  SoulSeedAgentOutputSchema,
+} from "@holo/contracts";
 import type { AgentSpec, MemoryScope, ProductManifest } from "@holo/contracts";
 import { CoreError } from "../../errors";
 
@@ -23,6 +27,18 @@ export interface AgentDef {
 const OUTPUT_SCHEMAS: Record<AgentSpec["output"], OutputValidator> = {
   agent: SoulSeedAgentOutputSchema,
   synthesis: CoachingAgentOutputSchema,
+};
+
+/**
+ * Recipe registry (S84). Recipes are non-persona agents with their own output
+ * shape and memory behavior, dispatched outside the manifest-driven persona
+ * flow. cohering-v1 reads one freeform answer → recognition + 6 chamber vectors.
+ */
+export const COHERING_RECIPE = {
+  recipeId: "cohering-v1" as const,
+  agentKey: "cohering" as const,
+  outputSchema: CoheringOutputSchema as OutputValidator,
+  readScopes: ["profile", "narrative", "state"] as MemoryScope[],
 };
 
 /**

@@ -1,12 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { CoachingAgentOutputSchema, HurlPathSchema, SoulSeedAgentOutputSchema } from "@holo/contracts";
+import {
+  CoachingAgentOutputSchema,
+  CoheringOutputSchema,
+  HurlPathSchema,
+  SoulSeedAgentOutputSchema,
+} from "@holo/contracts";
 import type { AgentRunRequest } from "@holo/contracts";
 import { makeFakeRepo } from "../../testing/fakeRepo";
 import { startSession } from "../sessions";
 import { mockRouter } from "./modelRouter";
 import type { ModelRouter } from "./modelRouter";
 import { runAgent } from "./runAgent";
+import { runCoheringV1 } from "./recipes/coheringV1";
 
 function request(overrides: Partial<AgentRunRequest> = {}): AgentRunRequest {
   return {
@@ -144,6 +150,70 @@ describe("runAgent — synthesis HURL is engine-owned", () => {
     expect(HurlPathSchema.safeParse(hurl).success).toBe(true);
     expect(hurl).not.toBe("NOT-A-VALID-HURL");
     expect(hurl).toMatch(/^hurl:\/\/soulseed\/living-invitation\//);
+  });
+});
+
+describe("cohering-v1 (mock)", () => {
+  it("returns all 6 chamber vectors + writes 6 narrative + 1 recognition memory", async () => {
+    const { repo, memories, agentRuns } = makeFakeRepo();
+    const userId = randomUUID();
+    const sessionId = randomUUID();
+
+    const out = await runCoheringV1(
+      repo,
+      { userId, sessionId, answer: "I'm a builder who wants clarity before depth." },
+      { mode: "mock" }
+    );
+
+    expect(CoheringOutputSchema.safeParse(out).success).toBe(true);
+    const vectors = Object.values(out.chamberVectors);
+    expect(vectors).toHaveLength(6);
+    expect(vectors.every((v) => v.length > 0)).toBe(true);
+
+    const narrative = memories.filter((m) => m.scope === "narrative" && m.contentJson?.["chamberKey"]);
+    expect(narrative).toHaveLength(6);
+    expect(narrative.map((m) => m.contentJson?.["chamberKey"]).sort()).toEqual([
+      "identity-seed",
+      "living-invitation",
+      "memory-root",
+      "present-state",
+      "threshold",
+      "trajectory-branch",
+    ]);
+    expect(narrative.every((m) => m.importance === 0.75)).toBe(true);
+
+    const recognition = memories.filter(
+      (m) => m.scope === "state" && m.contentJson?.["key"] === "cohering.recognition"
+    );
+    expect(recognition).toHaveLength(1);
+    expect(recognition[0]?.importance).toBe(0.85);
+
+    expect(agentRuns).toHaveLength(1);
+    expect(agentRuns[0]?.agentKey).toBe("cohering");
+  });
+
+  it("a correction pass writes 6 MORE narrative memories + records correctionOf", async () => {
+    const { repo, memories, agentRuns } = makeFakeRepo();
+    const userId = randomUUID();
+    const sessionId = randomUUID();
+
+    await runCoheringV1(repo, { userId, sessionId, answer: "first answer" }, { mode: "mock" });
+    await runCoheringV1(
+      repo,
+      { userId, sessionId, answer: "first answer", correctionOf: "not quite — more like X" },
+      { mode: "mock" }
+    );
+
+    const narrative = memories.filter((m) => m.scope === "narrative" && m.contentJson?.["chamberKey"]);
+    expect(narrative).toHaveLength(12); // 6 + 6 (fresh rows, no dedup key)
+    const recognition = memories.filter(
+      (m) => m.scope === "state" && m.contentJson?.["key"] === "cohering.recognition"
+    );
+    expect(recognition).toHaveLength(1); // deduped + updated
+    expect(agentRuns).toHaveLength(2);
+    expect((agentRuns[1]?.input as { correctionOf?: string })?.correctionOf).toBe(
+      "not quite — more like X"
+    );
   });
 });
 

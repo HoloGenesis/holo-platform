@@ -2,6 +2,8 @@ import {
   AgentRunRequestSchema,
   ArtifactCreateRequestSchema,
   ArtifactCreateResponseSchema,
+  CoheringInputSchema,
+  CoheringOutputSchema,
   CheckoutRequestSchema,
   CheckoutResponseSchema,
   EntitlementsGetResponseSchema,
@@ -32,6 +34,8 @@ import type {
   AgentRunResponse,
   ArtifactCreateRequest,
   ArtifactCreateResponse,
+  CoheringInput,
+  CoheringOutput,
   CheckoutRequest,
   CheckoutResponse,
   EntitlementsGetResponse,
@@ -135,6 +139,10 @@ export interface HoloClient {
     create(req: ArtifactCreateRequest): Promise<ArtifactCreateResponse>;
     /** Public URL for the shareable Snapshot PNG (no fetch — a URL builder). */
     imageUrl(artifactId: string): string;
+  };
+  cohering: {
+    /** One freeform answer → recognition line + 6 chamber vectors (cohering-v1). */
+    run(input: CoheringInput): Promise<CoheringOutput>;
   };
   entitlements: {
     check(userId: string): Promise<EntitlementsGetResponse>;
@@ -349,6 +357,16 @@ export function createHoloClient(options: HoloClientOptions): HoloClient {
         }),
       imageUrl: (artifactId) =>
         `${base}/v1/artifacts/${encodeURIComponent(artifactId)}/image`,
+    },
+    cohering: {
+      // selects the cohering-v1 recipe via agentKey on the shared /v1/agents/run
+      run: (input) =>
+        send({
+          method: "POST",
+          path: "/v1/agents/run",
+          body: { agentKey: "cohering", ...CoheringInputSchema.parse(input) },
+          resSchema: CoheringOutputSchema,
+        }),
     },
     entitlements: {
       check: (userId) =>

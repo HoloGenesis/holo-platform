@@ -12,6 +12,7 @@ export * from "./entitlement";
 export * from "./holon";
 export * from "./manifest";
 export * from "./agent";
+export * from "./cohering";
 export * from "./session-endpoints";
 export * from "./memory-endpoints";
 export * from "./orchestration-endpoints";
