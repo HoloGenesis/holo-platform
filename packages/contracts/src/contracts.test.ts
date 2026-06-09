@@ -4,6 +4,8 @@ import {
   CoheringInputSchema,
   CoheringOutputSchema,
   ProductManifestSchema,
+  ProofInputSchema,
+  ProofOutputSchema,
 } from "./index";
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
@@ -82,6 +84,37 @@ describe("CoheringOutputSchema", () => {
     };
     delete (invalid.chamberVectors as Record<string, unknown>).memoryRoot;
     expect(() => CoheringOutputSchema.parse(invalid)).toThrow();
+  });
+});
+
+describe("ProofInputSchema / ProofOutputSchema", () => {
+  it("parses a valid ProofInput", () => {
+    const parsed = ProofInputSchema.parse({ userId: USER_ID, sessionId: SESSION_ID });
+    expect(parsed.userId).toBe(USER_ID);
+  });
+
+  it("throws on a ProofInput with a bad uuid", () => {
+    expect(() => ProofInputSchema.parse({ userId: "nope", sessionId: SESSION_ID })).toThrow();
+  });
+
+  it("parses a valid ProofOutput", () => {
+    const parsed = ProofOutputSchema.parse({
+      demoQuestion: "What should I focus on next?",
+      genericResponse: "Here are some tips that might help you…",
+      attunedResponse: "Because you value clarity before depth, focus on one priority.",
+      attunedCitation: "you value clarity before depth",
+    });
+    expect(parsed.attunedResponse).toContain(parsed.attunedCitation);
+  });
+
+  it("throws on a ProofOutput missing attunedCitation", () => {
+    expect(() =>
+      ProofOutputSchema.parse({
+        demoQuestion: "q",
+        genericResponse: "g",
+        attunedResponse: "a",
+      })
+    ).toThrow();
   });
 });
 

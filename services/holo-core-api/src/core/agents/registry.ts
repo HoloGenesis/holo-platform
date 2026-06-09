@@ -1,6 +1,7 @@
 import {
   CoachingAgentOutputSchema,
   CoheringOutputSchema,
+  ProofOutputSchema,
   SoulSeedAgentOutputSchema,
 } from "@holo/contracts";
 import type { AgentSpec, MemoryScope, ProductManifest } from "@holo/contracts";
@@ -39,6 +40,14 @@ export const COHERING_RECIPE = {
   agentKey: "cohering" as const,
   outputSchema: CoheringOutputSchema as OutputValidator,
   readScopes: ["profile", "narrative", "state"] as MemoryScope[],
+};
+
+/** proof-v1 (S85): generic vs SoulSeed-attuned A/B from the cohering output. */
+export const PROOF_RECIPE = {
+  recipeId: "proof-v1" as const,
+  agentKey: "proof" as const,
+  outputSchema: ProofOutputSchema as OutputValidator,
+  readScopes: ["state", "narrative"] as MemoryScope[],
 };
 
 /**

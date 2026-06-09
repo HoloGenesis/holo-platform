@@ -5,6 +5,7 @@ import { Screen02Offer } from "../../components/screens/Screen02Offer";
 import { Screen03Question } from "../../components/screens/Screen03Question";
 import { Screen04Listening } from "../../components/screens/Screen04Listening";
 import { Screen05Recognition } from "../../components/screens/Screen05Recognition";
+import { Screen06Proof } from "../../components/screens/Screen06Proof";
 import { useSprint10Store } from "../../lib/sprint10Store";
 
 // Parallel route for the Sprint-10 nine-screen rebuild. Lives at /sprint10 so
@@ -24,6 +25,8 @@ export default function Sprint10Page() {
       return <Screen04Listening />;
     case 5:
       return <Screen05Recognition />;
+    case 6:
+      return <Screen06Proof />;
     default:
       return (
         <div className="soulseed-page grid min-h-svh place-items-center px-6 text-center text-soulseed-dawn">

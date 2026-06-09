@@ -13,6 +13,7 @@ export * from "./holon";
 export * from "./manifest";
 export * from "./agent";
 export * from "./cohering";
+export * from "./proof";
 export * from "./session-endpoints";
 export * from "./memory-endpoints";
 export * from "./orchestration-endpoints";

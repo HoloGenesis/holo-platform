@@ -4,6 +4,8 @@ import {
   ArtifactCreateResponseSchema,
   CoheringInputSchema,
   CoheringOutputSchema,
+  ProofInputSchema,
+  ProofOutputSchema,
   CheckoutRequestSchema,
   CheckoutResponseSchema,
   EntitlementsGetResponseSchema,
@@ -36,6 +38,8 @@ import type {
   ArtifactCreateResponse,
   CoheringInput,
   CoheringOutput,
+  ProofInput,
+  ProofOutput,
   CheckoutRequest,
   CheckoutResponse,
   EntitlementsGetResponse,
@@ -143,6 +147,10 @@ export interface HoloClient {
   cohering: {
     /** One freeform answer → recognition line + 6 chamber vectors (cohering-v1). */
     run(input: CoheringInput): Promise<CoheringOutput>;
+  };
+  proof: {
+    /** Generic vs SoulSeed-attuned A/B from the cohering output (proof-v1). */
+    run(input: ProofInput): Promise<ProofOutput>;
   };
   entitlements: {
     check(userId: string): Promise<EntitlementsGetResponse>;
@@ -366,6 +374,16 @@ export function createHoloClient(options: HoloClientOptions): HoloClient {
           path: "/v1/agents/run",
           body: { agentKey: "cohering", ...CoheringInputSchema.parse(input) },
           resSchema: CoheringOutputSchema,
+        }),
+    },
+    proof: {
+      // selects the proof-v1 recipe via agentKey on the shared /v1/agents/run
+      run: (input) =>
+        send({
+          method: "POST",
+          path: "/v1/agents/run",
+          body: { agentKey: "proof", ...ProofInputSchema.parse(input) },
+          resSchema: ProofOutputSchema,
         }),
     },
     entitlements: {

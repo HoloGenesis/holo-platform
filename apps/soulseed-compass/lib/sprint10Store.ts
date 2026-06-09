@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { CoheringOutput } from "@holo/contracts";
+import type { CoheringOutput, ProofOutput } from "@holo/contracts";
 import { holo } from "./holo";
 
 // Sprint-10 nine-screen sequence state. Deliberately SEPARATE from chamberStore
@@ -17,6 +17,7 @@ const ls = (k: string): string | null =>
 type StartStatus = "idle" | "starting" | "ready" | "error";
 type CoheringStatus = "idle" | "running" | "ready" | "error";
 type ConfirmStatus = "idle" | "confirmed" | "correcting";
+type ProofStatus = "idle" | "running" | "ready" | "error";
 
 interface Sprint10Store {
   currentScreen: number;
@@ -32,6 +33,11 @@ interface Sprint10Store {
   coheringStatus: CoheringStatus;
   coheringError: string | null;
   confirmStatus: ConfirmStatus;
+  // proof (S85)
+  proof: ProofOutput | null;
+  proofStatus: ProofStatus;
+  proofError: string | null;
+  proofNeedsCohering: boolean;
 
   advance: () => void;
   back: () => void;
@@ -42,6 +48,7 @@ interface Sprint10Store {
   confirmRecognition: () => Promise<void>;
   correctRecognition: (correction: string) => Promise<void>;
   skipConfirmation: () => Promise<void>;
+  runProof: () => Promise<void>;
 }
 
 export const useSprint10Store = create<Sprint10Store>((set, get) => ({
@@ -56,6 +63,10 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   coheringStatus: "idle",
   coheringError: null,
   confirmStatus: "idle",
+  proof: null,
+  proofStatus: "idle",
+  proofError: null,
+  proofNeedsCohering: false,
 
   advance: () => set((s) => ({ currentScreen: clamp(s.currentScreen + 1) })),
   back: () => set((s) => ({ currentScreen: clamp(s.currentScreen - 1) })),
@@ -150,5 +161,39 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
       }
     }
     set({ confirmStatus: "idle", currentScreen: clamp(6) });
+  },
+
+  runProof: async () => {
+    // guard re-entry (React strict-mode double-invokes the mount effect; also
+    // avoids racing the proof.shown upsert into duplicate rows)
+    const status = get().proofStatus;
+    if (status === "running" || status === "ready") return;
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    if (!userId || !sessionId) {
+      set({
+        proofStatus: "error",
+        proofError: "Cohering signal missing — re-run from Screen 3.",
+        proofNeedsCohering: true,
+      });
+      return;
+    }
+    set({ proofStatus: "running", proofError: null, proofNeedsCohering: false });
+    try {
+      const out = await holo.proof.run({ userId, sessionId });
+      set({ proof: out, proofStatus: "ready" });
+    } catch (err) {
+      const code = (err as { code?: unknown })?.code;
+      const needsCohering = code === "cohering_signal_missing";
+      set({
+        proofStatus: "error",
+        proofError: needsCohering
+          ? "Cohering signal missing — re-run from Screen 3."
+          : err instanceof Error
+            ? err.message
+            : "Couldn't draw the comparison. Try again.",
+        proofNeedsCohering: needsCohering,
+      });
+    }
   },
 }));

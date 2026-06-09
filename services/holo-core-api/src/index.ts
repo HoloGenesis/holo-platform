@@ -34,7 +34,8 @@ export type {
 } from "./core/orchestration";
 export { runAgent } from "./core/agents/runAgent";
 export { runCoheringV1 } from "./core/agents/recipes/coheringV1";
-export { COHERING_RECIPE } from "./core/agents/registry";
+export { runProofV1 } from "./core/agents/recipes/proofV1";
+export { COHERING_RECIPE, PROOF_RECIPE } from "./core/agents/registry";
 export type { AgentOutput, RunAgentResult, RunAgentOptions } from "./core/agents/runAgent";
 export { getAgent } from "./core/agents/registry";
 export { createModelRouter, mockRouter } from "./core/agents/modelRouter";

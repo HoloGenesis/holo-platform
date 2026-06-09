@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { AgentRunRequestSchema, CoheringInputSchema } from "@holo/contracts";
-import { CoreError, getRepo, runAgent, runCoheringV1 } from "@holo/core-api";
+import { AgentRunRequestSchema, CoheringInputSchema, ProofInputSchema } from "@holo/contracts";
+import { CoreError, getRepo, runAgent, runCoheringV1, runProofV1 } from "@holo/core-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +30,26 @@ export async function POST(request: Request) {
     }
     try {
       const output = await runCoheringV1(getRepo(), parsed.data);
+      return NextResponse.json(output);
+    } catch (err) {
+      if (err instanceof CoreError) {
+        return NextResponse.json({ error: err.code }, { status: err.status });
+      }
+      throw err;
+    }
+  }
+
+  // --- proof-v1 branch ------------------------------------------------------
+  if (typeof body === "object" && body !== null && (body as { agentKey?: unknown }).agentKey === "proof") {
+    const parsed = ProofInputSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "invalid_request", issues: parsed.error.issues },
+        { status: 400 }
+      );
+    }
+    try {
+      const output = await runProofV1(getRepo(), parsed.data);
       return NextResponse.json(output);
     } catch (err) {
       if (err instanceof CoreError) {
