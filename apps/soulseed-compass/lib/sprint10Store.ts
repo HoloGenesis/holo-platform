@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { CoheringOutput, ProofOutput, SoulSeedSnapshotV2 } from "@holo/contracts";
 import { holo } from "./holo";
+import { returnUrlFromSnapshot } from "./hurl";
 
 // Sprint-10 nine-screen sequence state. Deliberately SEPARATE from chamberStore
 // so the existing shell keeps working during the rebuild (cutover at S89).
@@ -64,6 +65,11 @@ interface Sprint10Store {
   snapshotStatus: "idle" | "composing" | "ready" | "error";
   snapshotError: string | null;
   snapshotNeedsCohering: boolean;
+  // HURL reveal + optional email (S87)
+  emailDraft: string;
+  emailStatus: "idle" | "sending" | "sent" | "error";
+  emailError: string | null;
+  emailSentTo: string | null;
 
   advance: () => void;
   back: () => void;
@@ -81,6 +87,14 @@ interface Sprint10Store {
   runProof: () => Promise<void>;
   composeSnapshot: () => Promise<void>;
   continueToHurl: () => void;
+  /** Shareable return URL derived from the snapshot; null until one exists. Computed on demand. */
+  getReturnUrl: () => string | null;
+  setEmailDraft: (text: string) => void;
+  /** Optional email send via the existing S60 setEmail → sendHurlInvitation chain. */
+  sendHurlEmail: () => Promise<void>;
+  resetEmailCapture: () => void;
+  /** Record hurl.opened (analytic) and advance to Screen 9. Internal — never redirects. */
+  openMyHurl: () => Promise<void>;
 }
 
 export const useSprint10Store = create<Sprint10Store>((set, get) => ({
@@ -104,6 +118,10 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   snapshotStatus: "idle",
   snapshotError: null,
   snapshotNeedsCohering: false,
+  emailDraft: "",
+  emailStatus: "idle",
+  emailError: null,
+  emailSentTo: null,
 
   advance: () => set((s) => ({ currentScreen: clamp(s.currentScreen + 1) })),
   back: () => set((s) => ({ currentScreen: clamp(s.currentScreen - 1) })),
@@ -290,4 +308,54 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   },
 
   continueToHurl: () => set({ currentScreen: clamp(8) }),
+
+  getReturnUrl: () => {
+    const snapshot = get().snapshot;
+    return snapshot ? returnUrlFromSnapshot(snapshot) : null;
+  },
+
+  setEmailDraft: (text) => set({ emailDraft: text }),
+
+  sendHurlEmail: async () => {
+    const { emailStatus, emailDraft } = get();
+    if (emailStatus === "sending" || emailStatus === "sent") return;
+    const userId = get().userId ?? ls("sprint10:userId");
+    const email = emailDraft.trim();
+    if (!userId || email.length === 0) return;
+    set({ emailStatus: "sending", emailError: null });
+    try {
+      // existing S60 chain: setEmail stores the address + triggers the HURL
+      // invitation send (idempotent server-side within 1h)
+      await holo.users.setEmail({ userId, email });
+      set({ emailStatus: "sent", emailSentTo: email, emailDraft: "" });
+    } catch (err) {
+      set({
+        emailStatus: "error",
+        emailError: err instanceof Error ? err.message : "Couldn't send. Try again.",
+      });
+    }
+  },
+
+  resetEmailCapture: () => set({ emailStatus: "idle", emailError: null, emailDraft: "" }),
+
+  openMyHurl: async () => {
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    if (userId && sessionId) {
+      try {
+        await holo.memory.upsert({
+          userId,
+          sessionId,
+          sourceProduct: PRODUCT_KEY,
+          scope: "state",
+          content: "true",
+          contentJson: { key: "hurl.opened" },
+          importance: 0.2,
+        });
+      } catch {
+        // analytic signal only — never blocks the journey
+      }
+    }
+    set({ currentScreen: clamp(9) });
+  },
 }));

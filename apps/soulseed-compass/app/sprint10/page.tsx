@@ -7,6 +7,7 @@ import { Screen04Listening } from "../../components/screens/Screen04Listening";
 import { Screen05Recognition } from "../../components/screens/Screen05Recognition";
 import { Screen06Proof } from "../../components/screens/Screen06Proof";
 import { Screen07Snapshot } from "../../components/screens/Screen07Snapshot";
+import { Screen08Hurl } from "../../components/screens/Screen08Hurl";
 import { useSprint10Store } from "../../lib/sprint10Store";
 
 // Parallel route for the Sprint-10 nine-screen rebuild. Lives at /sprint10 so
@@ -30,6 +31,8 @@ export default function Sprint10Page() {
       return <Screen06Proof />;
     case 7:
       return <Screen07Snapshot />;
+    case 8:
+      return <Screen08Hurl />;
     default:
       return (
         <div className="soulseed-page grid min-h-svh place-items-center px-6 text-center text-soulseed-dawn">
