@@ -21,8 +21,10 @@ export const CoheringInputSchema = z.object({
   userId: UuidSchema,
   sessionId: UuidSchema,
   answer: z.string().min(1).max(4000),
-  /** Present when re-running after the user says "Not quite". */
+  /** Path (c) "Not quite": the corrective signal — regenerate from this. */
   correctionOf: z.string().optional(),
+  /** Path (b) "Mostly, but there's more": augments the answer, not replaces it. */
+  addedContext: z.string().optional(),
 });
 export type CoheringInput = z.infer<typeof CoheringInputSchema>;
 
@@ -31,5 +33,11 @@ export const CoheringOutputSchema = z.object({
   supportingLine: z.string(), // 1 sentence "why this matters"
   chamberVectors: ChamberVectorsSchema,
   confidence: z.number().min(0).max(1),
+  /** Short support-style tags, e.g. "warm", "direct", "evidence-based" (S84b). */
+  supportStyleSignals: z.array(z.string()).min(1).max(8),
+  /** Short avoid tags, e.g. "fluff", "false positivity", "generic advice" (S84b). */
+  avoidSignals: z.array(z.string()).min(0).max(8),
+  /** One concrete sentence, e.g. "Choose one priority and define what enough looks like." */
+  nextCoherentStep: z.string().min(1),
 });
 export type CoheringOutput = z.infer<typeof CoheringOutputSchema>;

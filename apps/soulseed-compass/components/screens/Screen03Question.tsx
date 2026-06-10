@@ -1,14 +1,37 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { DawnGlass, IridescentButton, SoulSeedScreenShell } from "../dawn-glass";
 import { useSprint10Store } from "../../lib/sprint10Store";
 
 // Screen 3 — First Question (spec §8). One freeform answer. Continue starts the
-// single cohering call (which advances to Screen 4 as a transition).
+// single cohering call (which advances to Screen 4 as a transition). S84b adds
+// the confusion interrupt: a hard pause + explain + re-ask, rendered ABOVE the
+// question card; no LLM call fires while it's shown.
+
+// Brooks's verbatim explainer (S84b item 6) — do not edit.
+const CONFUSION_EXPLAINER =
+  "You're right to pause. Here's what we're doing: SoulSeed is building a living profile that helps future AI guides understand how to meet you. These questions help identify what you need, how you prefer to be supported, what AI should avoid, and what kind of next step would feel useful. You'll leave with a SoulSeed Snapshot and a Return Link so the experience can continue later.";
+
 export function Screen03Question() {
   const answer = useSprint10Store((s) => s.answer);
   const setAnswer = useSprint10Store((s) => s.setAnswer);
   const runCohering = useSprint10Store((s) => s.runCohering);
+  const confusionShown = useSprint10Store((s) => s.confusionShown);
+  const dismissConfusionInterrupt = useSprint10Store((s) => s.dismissConfusionInterrupt);
+
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const hadInterrupt = useRef(false);
+
+  // After the interrupt dismisses, refocus the (cleared) textarea.
+  useEffect(() => {
+    if (confusionShown) {
+      hadInterrupt.current = true;
+    } else if (hadInterrupt.current) {
+      hadInterrupt.current = false;
+      textareaRef.current?.focus();
+    }
+  }, [confusionShown]);
 
   const tooShort = answer.trim().length < 3;
 
@@ -40,7 +63,24 @@ export function Screen03Question() {
               </p>
             </div>
           </div>
+
+          {confusionShown && (
+            <DawnGlass className="mb-6 border-soulseed-honey/50 p-6">
+              <p className="text-base leading-7 text-soulseed-dawn/90">{CONFUSION_EXPLAINER}</p>
+              <div className="mt-5">
+                <IridescentButton
+                  type="button"
+                  className="px-6 py-3"
+                  onClick={dismissConfusionInterrupt}
+                >
+                  Let me try again
+                </IridescentButton>
+              </div>
+            </DawnGlass>
+          )}
+
           <textarea
+            ref={textareaRef}
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
             className="min-h-40 w-full resize-none rounded-[24px] border border-white/20 bg-black/20 p-6 text-lg text-soulseed-dawn outline-none placeholder:text-soulseed-dawn/42 focus:border-soulseed-honey/60"
@@ -52,7 +92,7 @@ export function Screen03Question() {
             <IridescentButton
               type="button"
               className="px-7 py-3"
-              disabled={tooShort}
+              disabled={tooShort || confusionShown}
               onClick={() => void runCohering()}
             >
               Continue →

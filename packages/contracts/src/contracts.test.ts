@@ -69,12 +69,17 @@ describe("CoheringOutputSchema", () => {
       livingInvitation: "Name one priority; define enough",
     },
     confidence: 0.72,
+    supportStyleSignals: ["direct", "evidence-based", "concise"],
+    avoidSignals: ["fluff", "generic advice"],
+    nextCoherentStep: "Choose one priority and define what enough looks like.",
   };
 
-  it("parses a valid CoheringOutput", () => {
+  it("parses a valid CoheringOutput (incl. S84b fields)", () => {
     const parsed = CoheringOutputSchema.parse(valid);
     expect(parsed.chamberVectors.identitySeed).toContain("Builder");
     expect(parsed.confidence).toBeCloseTo(0.72);
+    expect(parsed.supportStyleSignals).toHaveLength(3);
+    expect(parsed.nextCoherentStep).toContain("priority");
   });
 
   it("throws when a chamber vector is missing", () => {
@@ -84,6 +89,23 @@ describe("CoheringOutputSchema", () => {
     };
     delete (invalid.chamberVectors as Record<string, unknown>).memoryRoot;
     expect(() => CoheringOutputSchema.parse(invalid)).toThrow();
+  });
+
+  it("throws when supportStyleSignals is empty or nextCoherentStep missing", () => {
+    expect(() => CoheringOutputSchema.parse({ ...valid, supportStyleSignals: [] })).toThrow();
+    const noStep: Record<string, unknown> = { ...valid };
+    delete noStep.nextCoherentStep;
+    expect(() => CoheringOutputSchema.parse(noStep)).toThrow();
+  });
+
+  it("accepts addedContext on CoheringInput (path b augment)", () => {
+    const parsed = CoheringInputSchema.parse({
+      userId: USER_ID,
+      sessionId: SESSION_ID,
+      answer: "original answer",
+      addedContext: "also: keep it grounded",
+    });
+    expect(parsed.addedContext).toContain("grounded");
   });
 });
 

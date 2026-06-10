@@ -14,6 +14,25 @@ const clamp = (n: number): number => Math.max(1, Math.min(TOTAL, n));
 const ls = (k: string): string | null =>
   typeof window !== "undefined" ? window.localStorage.getItem(k) : null;
 
+// Confusion interrupt (S84b, Brooks's non-negotiable). Deterministic substring
+// check — no LLM judgment on whether the user is confused.
+const CONFUSION_PHRASES = [
+  "this is confusing",
+  "what is this",
+  "why am i doing this",
+  "this makes no sense",
+  "i don't get it",
+  "i dont get it",
+  "what's going on",
+  "i'm confused",
+  "im confused",
+] as const;
+
+export function isConfusionPhrase(text: string): boolean {
+  const t = text.toLowerCase();
+  return CONFUSION_PHRASES.some((phrase) => t.includes(phrase));
+}
+
 type StartStatus = "idle" | "starting" | "ready" | "error";
 type CoheringStatus = "idle" | "running" | "ready" | "error";
 type ConfirmStatus = "idle" | "confirmed" | "correcting";
@@ -33,6 +52,8 @@ interface Sprint10Store {
   coheringStatus: CoheringStatus;
   coheringError: string | null;
   confirmStatus: ConfirmStatus;
+  // confusion interrupt (S84b)
+  confusionShown: boolean;
   // proof (S85)
   proof: ProofOutput | null;
   proofStatus: ProofStatus;
@@ -44,10 +65,14 @@ interface Sprint10Store {
   goTo: (n: number) => void;
   startSession: () => Promise<boolean>;
   setAnswer: (text: string) => void;
-  runCohering: (correctionOf?: string) => Promise<void>;
+  runCohering: (opts?: { correctionOf?: string; addedContext?: string }) => Promise<void>;
   confirmRecognition: () => Promise<void>;
+  /** Path (c) "Not quite": regenerate from the corrective signal. */
   correctRecognition: (correction: string) => Promise<void>;
-  skipConfirmation: () => Promise<void>;
+  /** Path (b) "Mostly, but there's more": augment — both inputs stay valid signal. */
+  augmentRecognition: (addition: string) => Promise<void>;
+  triggerConfusionInterrupt: () => Promise<void>;
+  dismissConfusionInterrupt: () => void;
   runProof: () => Promise<void>;
 }
 
@@ -63,6 +88,7 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   coheringStatus: "idle",
   coheringError: null,
   confirmStatus: "idle",
+  confusionShown: false,
   proof: null,
   proofStatus: "idle",
   proofError: null,
@@ -98,15 +124,28 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
 
   // Single cohering call. Advances to Screen 4 (the listening transition)
   // immediately; Screen 4 auto-advances to Screen 5 when coheringStatus===ready.
-  runCohering: async (correctionOf) => {
+  // Confusion gate (S84b): a confusion phrase NEVER reaches the LLM — hard
+  // pause + explain + re-ask, no screen advance, no chamber memories.
+  runCohering: async (opts) => {
     const userId = get().userId ?? ls("sprint10:userId");
     const sessionId = get().sessionId ?? ls("sprint10:sessionId");
     const answer = get().answer.trim();
     if (!userId || !sessionId || answer.length < 1) return;
 
+    if (isConfusionPhrase(answer)) {
+      await get().triggerConfusionInterrupt();
+      return;
+    }
+
     set({ currentScreen: 4, coheringStatus: "running", coheringError: null });
     try {
-      const out = await holo.cohering.run({ userId, sessionId, answer, correctionOf });
+      const out = await holo.cohering.run({
+        userId,
+        sessionId,
+        answer,
+        correctionOf: opts?.correctionOf,
+        addedContext: opts?.addedContext,
+      });
       set({ recognition: out, coheringStatus: "ready", confirmStatus: "idle" });
     } catch (err) {
       set({
@@ -114,6 +153,31 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
         coheringError: err instanceof Error ? err.message : "Something went quiet. Try again.",
       });
     }
+  },
+
+  triggerConfusionInterrupt: async () => {
+    set({ confusionShown: true });
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    if (userId && sessionId) {
+      try {
+        await holo.memory.upsert({
+          userId,
+          sessionId,
+          sourceProduct: PRODUCT_KEY,
+          scope: "event",
+          content: "Confusion interrupt shown; product explained; user re-asked.",
+          contentJson: { key: "cohering.confusion_interrupt" },
+          importance: 0.1,
+        });
+      } catch {
+        // best-effort — the interrupt itself never depends on the write
+      }
+    }
+  },
+
+  dismissConfusionInterrupt: () => {
+    set({ confusionShown: false, answer: "" });
   },
 
   confirmRecognition: async () => {
@@ -139,28 +203,12 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
 
   correctRecognition: async (correction) => {
     set({ confirmStatus: "correcting" });
-    await get().runCohering(correction);
+    await get().runCohering({ correctionOf: correction });
   },
 
-  skipConfirmation: async () => {
-    const userId = get().userId ?? ls("sprint10:userId");
-    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
-    if (userId && sessionId) {
-      try {
-        await holo.memory.upsert({
-          userId,
-          sessionId,
-          sourceProduct: PRODUCT_KEY,
-          scope: "state",
-          content: "uncertain",
-          contentJson: { key: "cohering.confirmed", value: "uncertain" },
-          importance: 0.8,
-        });
-      } catch {
-        // best-effort
-      }
-    }
-    set({ confirmStatus: "idle", currentScreen: clamp(6) });
+  augmentRecognition: async (addition) => {
+    set({ confirmStatus: "correcting" });
+    await get().runCohering({ addedContext: addition });
   },
 
   runProof: async () => {
