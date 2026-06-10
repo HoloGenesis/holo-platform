@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { CoheringOutput, ProofOutput } from "@holo/contracts";
+import type { CoheringOutput, ProofOutput, SoulSeedSnapshotV2 } from "@holo/contracts";
 import { holo } from "./holo";
 
 // Sprint-10 nine-screen sequence state. Deliberately SEPARATE from chamberStore
@@ -59,6 +59,11 @@ interface Sprint10Store {
   proofStatus: ProofStatus;
   proofError: string | null;
   proofNeedsCohering: boolean;
+  // snapshot v2 (S86)
+  snapshot: SoulSeedSnapshotV2 | null;
+  snapshotStatus: "idle" | "composing" | "ready" | "error";
+  snapshotError: string | null;
+  snapshotNeedsCohering: boolean;
 
   advance: () => void;
   back: () => void;
@@ -74,6 +79,8 @@ interface Sprint10Store {
   triggerConfusionInterrupt: () => Promise<void>;
   dismissConfusionInterrupt: () => void;
   runProof: () => Promise<void>;
+  composeSnapshot: () => Promise<void>;
+  continueToHurl: () => void;
 }
 
 export const useSprint10Store = create<Sprint10Store>((set, get) => ({
@@ -93,6 +100,10 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   proofStatus: "idle",
   proofError: null,
   proofNeedsCohering: false,
+  snapshot: null,
+  snapshotStatus: "idle",
+  snapshotError: null,
+  snapshotNeedsCohering: false,
 
   advance: () => set((s) => ({ currentScreen: clamp(s.currentScreen + 1) })),
   back: () => set((s) => ({ currentScreen: clamp(s.currentScreen - 1) })),
@@ -244,4 +255,39 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
       });
     }
   },
+
+  composeSnapshot: async () => {
+    // re-entry guard (React strict-mode double-invokes the mount effect)
+    const status = get().snapshotStatus;
+    if (status === "composing" || status === "ready") return;
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    if (!userId || !sessionId) {
+      set({
+        snapshotStatus: "error",
+        snapshotError: "Cohering signal missing — re-run from Screen 3.",
+        snapshotNeedsCohering: true,
+      });
+      return;
+    }
+    set({ snapshotStatus: "composing", snapshotError: null, snapshotNeedsCohering: false });
+    try {
+      const res = await holo.artifacts.composeSnapshotV2({ userId, sessionId });
+      set({ snapshot: res.contentJson, snapshotStatus: "ready" });
+    } catch (err) {
+      const code = (err as { code?: unknown })?.code;
+      const needsCohering = code === "cohering_signal_missing";
+      set({
+        snapshotStatus: "error",
+        snapshotError: needsCohering
+          ? "Cohering signal missing — re-run from Screen 3."
+          : err instanceof Error
+            ? err.message
+            : "Couldn't compose your Snapshot. Try again.",
+        snapshotNeedsCohering: needsCohering,
+      });
+    }
+  },
+
+  continueToHurl: () => set({ currentScreen: clamp(8) }),
 }));

@@ -123,7 +123,7 @@ function mockCohering(input: CoheringInput): CoheringOutput {
       threshold: `Why arriving now — "${a}"`,
       identitySeed: `Becoming signal — self-defined through their own words`,
       presentState: `Active and seeking clarity — "${corrected ?? a}"`,
-      memoryRoot: `Repeated pattern — the thread in their answer`,
+      memoryRoot: `What keeps returning: "${corrected ?? a}"`,
       trajectoryBranch: `Implied direction — what they named as mattering`,
       livingInvitation: `Next coherent invitation — name one priority and define enough`,
     },

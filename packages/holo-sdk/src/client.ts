@@ -6,6 +6,7 @@ import {
   CoheringOutputSchema,
   ProofInputSchema,
   ProofOutputSchema,
+  SnapshotV2CreateResponseSchema,
   CheckoutRequestSchema,
   CheckoutResponseSchema,
   EntitlementsGetResponseSchema,
@@ -40,6 +41,7 @@ import type {
   CoheringOutput,
   ProofInput,
   ProofOutput,
+  SnapshotV2CreateResponse,
   CheckoutRequest,
   CheckoutResponse,
   EntitlementsGetResponse,
@@ -141,6 +143,8 @@ export interface HoloClient {
   };
   artifacts: {
     create(req: ArtifactCreateRequest): Promise<ArtifactCreateResponse>;
+    /** Compose + persist the SoulSeed Snapshot v2 from cohering memories (S86). */
+    composeSnapshotV2(input: { userId: string; sessionId: string }): Promise<SnapshotV2CreateResponse>;
     /** Public URL for the shareable Snapshot PNG (no fetch — a URL builder). */
     imageUrl(artifactId: string): string;
   };
@@ -362,6 +366,19 @@ export function createHoloClient(options: HoloClientOptions): HoloClient {
           body: req,
           reqSchema: ArtifactCreateRequestSchema,
           resSchema: ArtifactCreateResponseSchema,
+        }),
+      composeSnapshotV2: (input) =>
+        send({
+          method: "POST",
+          path: "/v1/artifacts/create",
+          body: {
+            userId: input.userId,
+            sessionId: input.sessionId,
+            productKey: "soulseed",
+            artifactType: "soulseed-snapshot-v2",
+          },
+          reqSchema: ArtifactCreateRequestSchema,
+          resSchema: SnapshotV2CreateResponseSchema,
         }),
       imageUrl: (artifactId) =>
         `${base}/v1/artifacts/${encodeURIComponent(artifactId)}/image`,

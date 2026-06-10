@@ -6,6 +6,7 @@ import {
   ProductManifestSchema,
   ProofInputSchema,
   ProofOutputSchema,
+  SoulSeedSnapshotV2Schema,
 } from "./index";
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
@@ -137,6 +138,34 @@ describe("ProofInputSchema / ProofOutputSchema", () => {
         attunedResponse: "a",
       })
     ).toThrow();
+  });
+});
+
+describe("SoulSeedSnapshotV2Schema", () => {
+  const row = (title: string) => ({ title, description: `${title} — elaborated in one sentence.` });
+  const valid = {
+    identityPattern: row("Curious Builder"),
+    currentNeed: row("Clarity before depth"),
+    supportStyle: row("Direct · Thoughtful · Concise."),
+    whatAIShouldAvoid: row("Fluff. Generic advice."),
+    nextCoherentStep: row("Choose one priority and define what enough looks like."),
+    angelHandoffSummary: "This user arrives as a curious builder. Meet them with clarity first.",
+    hurlSeedData: { realm: "soulseed", chamber: "threshold", stage: 12, branch: "builder-systems", coherence: 40 },
+  };
+
+  it("parses a valid V2 snapshot (whatMattersMost optional)", () => {
+    const parsed = SoulSeedSnapshotV2Schema.parse(valid);
+    expect(parsed.whatMattersMost).toBeUndefined();
+    expect(parsed.hurlSeedData.realm).toBe("soulseed");
+    const withMatters = SoulSeedSnapshotV2Schema.parse({ ...valid, whatMattersMost: row("The job question keeps returning") });
+    expect(withMatters.whatMattersMost?.title).toContain("job question");
+  });
+
+  it("throws on a bad realm or empty handoff summary", () => {
+    expect(() =>
+      SoulSeedSnapshotV2Schema.parse({ ...valid, hurlSeedData: { ...valid.hurlSeedData, realm: "other" } })
+    ).toThrow();
+    expect(() => SoulSeedSnapshotV2Schema.parse({ ...valid, angelHandoffSummary: "" })).toThrow();
   });
 });
 

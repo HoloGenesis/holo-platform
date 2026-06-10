@@ -5,12 +5,14 @@ import type {
   HurlPath,
   MemoryRecord,
   ProductKey,
+  SnapshotV2CreateResponse,
   SoulSeedSnapshot,
 } from "@holo/contracts";
 import { SoulSeedSnapshotSchema } from "@holo/contracts";
 import type { ReturnView } from "@holo/contracts";
 import type { CoreRepo } from "../repo";
 import { assembleReturnView } from "./artifacts/assembleReturn";
+import { composeSnapshotV2 } from "./artifacts/snapshotV2";
 import { mintAndPersistHurl } from "./hurl";
 import { getContext } from "./memory";
 import { upsertMemory } from "./memory";
@@ -124,4 +126,42 @@ export async function createArtifact(
 /** Fetch a stored artifact by id. Public read — backs the share image route. */
 export async function getArtifact(repo: CoreRepo, id: string): Promise<ArtifactRecord | null> {
   return repo.getArtifactById(id);
+}
+
+/**
+ * Compose + persist the SoulSeed Snapshot v2 (S86). Upserts per session
+ * (artifactType "soulseed-snapshot-v2" — the v1 row, if any, is untouched) and
+ * records an artifact-scope pointer memory. Throws cohering_signal_missing
+ * when the cohering prerequisites are absent.
+ */
+export async function createSoulSeedSnapshotV2(
+  repo: CoreRepo,
+  input: ArtifactCreateRequest
+): Promise<SnapshotV2CreateResponse> {
+  const snapshot = await composeSnapshotV2(repo, {
+    userId: input.userId,
+    sessionId: input.sessionId,
+  });
+
+  const { id } = await repo.upsertArtifact({
+    userId: input.userId,
+    sessionId: input.sessionId,
+    productKey: input.productKey,
+    artifactType: "soulseed-snapshot-v2",
+    title: snapshot.identityPattern.title,
+    contentJson: snapshot,
+    fileUrl: null,
+  });
+
+  await upsertMemory(repo, {
+    userId: input.userId,
+    sessionId: input.sessionId,
+    sourceProduct: input.productKey,
+    scope: "artifact",
+    content: "SoulSeed Snapshot v2 generated.",
+    contentJson: { artifactId: id, summary: snapshot.identityPattern.title },
+    importance: 0.7,
+  });
+
+  return { artifactId: id, artifactType: "soulseed-snapshot-v2", contentJson: snapshot };
 }
