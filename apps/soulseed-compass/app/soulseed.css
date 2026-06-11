@@ -191,3 +191,86 @@ html, body {
   from { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(8px); }
   to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
+
+/* ===========================================================================
+   Dawn Glass v0.2 (S90) — "Brighten like morning, refract like opal."
+   ADDITIVE: everything above (v0.1) is unchanged and stays live until the
+   S102 cutover. Source: docs/dawn-glass-v0.2-spec.md §3–§5.
+   Deviation notes:
+   - Each --font-* stack includes its next/font variable (--next-font-*) so the
+     loaded webfonts actually apply; canonical names stay first (Q-W: "CIZNEL"
+     carries the canon, Cinzel the implementation). When CIZNEL-Regular.woff2
+     arrives: drop in public/fonts/ + add @font-face above :root; no other change.
+   - .ss2-mono (not .ss-mono): v0.1 already owns .ss-mono (live on Screen 8).
+   =========================================================================== */
+:root {
+  /* Dawn Glass v0.2 — base palette */
+  --nacre: #F7F7F0;
+  --ink: #0E1A2B;
+  --gold: #D4A017;
+  --pearl-white: rgba(255, 255, 255, 0.85);
+  --glass-blur: 40px;
+  /* Dawn Glass v0.2 — Material Law */
+  --ss-opal-body: rgba(225, 248, 255, 0.34);
+  --ss-prism-cyan: rgba(87, 218, 255, 0.55);
+  --ss-prism-violet: rgba(176, 120, 255, 0.42);
+  --ss-prism-rose: rgba(255, 142, 196, 0.36);
+  --ss-prism-honey: rgba(255, 190, 96, 0.58);
+  --ss-text-espresso: #241a14;
+  --ss-glass-shadow-warm: rgba(84, 50, 24, 0.22);
+  /* Dawn Glass v0.2 — typography stack */
+  --font-epic: "CIZNEL", var(--next-font-cinzel), "Trajan Pro", "Cormorant Garamond", serif;
+  --font-h: var(--next-font-libre), "Libre Baskerville", Georgia, serif;
+  --font-body: var(--next-font-montserrat), "Montserrat", Inter, system-ui, sans-serif;
+  --font-accent: var(--next-font-playfair), "Playfair Display", Georgia, serif;
+  --font-mono: var(--next-font-geist-mono), "Geist Mono", ui-monospace, monospace;
+}
+
+/* Typography canon (spec §4) — class utilities only; no element selectors so
+   v0.1 screens are untouched. */
+.big-epic-headline {
+  font-family: var(--font-epic);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.015em;
+  line-height: 0.9;
+}
+.ss-h { font-family: var(--font-h); font-weight: 400; line-height: 1.08; }
+.ss-body { font-family: var(--font-body); }
+.ss-accent { font-family: var(--font-accent); font-style: italic; font-weight: 500; }
+.ss2-mono { font-family: var(--font-mono); }
+
+/* The Metallic Gold Gradient (spec §5 — non-negotiable; never flat). */
+.gold-metallic {
+  color: transparent;
+  background:
+    linear-gradient(
+      115deg,
+      #6f4312 0%,
+      #a96d16 16%,
+      #f7d56a 32%,
+      #fff4b8 45%,
+      #c8891c 58%,
+      #7a4a12 72%,
+      #f4c65d 88%,
+      #9b6115 100%
+    );
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 6px rgba(92, 52, 10, 0.22),
+    0 12px 28px rgba(176, 111, 22, 0.24);
+  filter: drop-shadow(0 1px 0 rgba(255, 246, 180, 0.25));
+}
+
+/* Animated 5-stop variant (reference HTML's .epic-gold; for epic headlines). */
+.gold-metallic-simple {
+  color: transparent;
+  background: linear-gradient(135deg, #6f4712 0%, #d4a017 35%, #f5e8b0 50%, #d4a017 65%, #6f4712 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldSweep 10s linear infinite;
+}
+@keyframes goldSweep { to { background-position: 200% center; } }

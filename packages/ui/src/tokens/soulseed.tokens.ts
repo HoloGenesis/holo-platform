@@ -52,3 +52,52 @@ export const soulSeedTokens = {
     fast: "240ms",
   },
 } as const;
+
+// Dawn Glass v0.2 (S90) — "Brighten like morning, refract like opal."
+// ADDITIVE alongside soulSeedTokens (v0.1 stays live until the S102 cutover).
+// Source: docs/dawn-glass-v0.2-spec.md §3 (palette + Material Law) + §4 (type).
+export const dawn2Tokens = {
+  color: {
+    // Base palette (spec §3)
+    nacre: "#F7F7F0",
+    ink: "#0E1A2B",
+    gold: "#D4A017",
+    pearlWhite: "rgba(255, 255, 255, 0.85)",
+    // Extended palette (system mockup, same spec section)
+    dawnWhite: "#FFFFFF",
+    opalBlue: "#E6F1FF",
+    skyMist: "#C9E3FF",
+    softLavender: "#D7C6FF",
+    roseBlush: "#FFC1CC",
+    sunHoney: "#FFC78A",
+    seedUmber: "#8A5C3B",
+    inkNavy: "#0E1A2B",
+    // Material Law tokens (spec §3 token snapshot — verbatim)
+    opalBody: "rgba(225, 248, 255, 0.34)",
+    prismCyan: "rgba(87, 218, 255, 0.55)",
+    prismViolet: "rgba(176, 120, 255, 0.42)",
+    prismRose: "rgba(255, 142, 196, 0.36)",
+    prismHoney: "rgba(255, 190, 96, 0.58)",
+    textEspresso: "#241a14",
+    glassShadowWarm: "rgba(84, 50, 24, 0.22)",
+  },
+  blur: {
+    glass: "40px", // standard pearl-card backdrop-filter blur
+    heavy: "60px",
+  },
+  radius: {
+    pearl: "50px", // pearl-card border-radius from spec
+    pill: "999px",
+    lg: "32px",
+    md: "20px",
+    sm: "12px",
+  },
+  typography: {
+    // CIZNEL is the canon name (Brooks's Q-W ruling); Cinzel carries the implementation.
+    epic: `"CIZNEL", "Cinzel", "Trajan Pro", "Cormorant Garamond", serif`,
+    h: `"Libre Baskerville", Georgia, serif`,
+    body: `"Montserrat", Inter, system-ui, sans-serif`,
+    accent: `"Playfair Display", Georgia, serif`,
+    mono: `"Geist Mono", ui-monospace, monospace`,
+  },
+} as const;

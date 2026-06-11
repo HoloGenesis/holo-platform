@@ -19,6 +19,23 @@ const config: Config = {
           soft: "#f3dca0",
           deep: "#b8923f",
         },
+        // Dawn Glass v0.2 palette (S90, spec §3) — additive; activates S93+.
+        // Material Law rgba() tokens stay CSS-variable-only (--ss-prism-*);
+        // reach them in Tailwind via arbitrary values, e.g. bg-[var(--ss-prism-cyan)].
+        dawn: {
+          nacre: "#F7F7F0",
+          ink: "#0E1A2B",
+          gold: "#D4A017",
+          pearl: "rgba(255, 255, 255, 0.85)",
+          white: "#FFFFFF",
+          "opal-blue": "#E6F1FF",
+          "sky-mist": "#C9E3FF",
+          "soft-lavender": "#D7C6FF",
+          "rose-blush": "#FFC1CC",
+          "sun-honey": "#FFC78A",
+          "seed-umber": "#8A5C3B",
+          "ink-navy": "#0E1A2B",
+        },
         // Dawn Glass palette (spec §3) — additive; the new shell lands at S80+.
         soulseed: {
           ink: "#071014",
@@ -37,9 +54,15 @@ const config: Config = {
         ssDisplay: ['"Libre Baskerville"', '"Cormorant Garamond"', "Georgia", "serif"],
         ssUi: ['"Montserrat"', '"Inter"', "system-ui", "sans-serif"],
         ssMono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+        // v0.2 (S90) — resolve through the CSS-variable stacks
+        ssEpic: ["var(--font-epic)"],
+        ssH: ["var(--font-h)"],
+        ssBody: ["var(--font-body)"],
+        ssAccent: ["var(--font-accent)"],
+        ssMono2: ["var(--font-mono)"],
       },
-      borderRadius: { glass: "32px", "glass-xl": "44px" },
-      backdropBlur: { glass: "28px" },
+      borderRadius: { glass: "32px", "glass-xl": "44px", pearl: "50px" },
+      backdropBlur: { glass: "28px", pearl: "40px" },
       boxShadow: {
         glass: "0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 60px -30px rgba(0,0,0,0.85)",
         gold: "0 0 28px -8px rgba(232,193,106,0.5)",
