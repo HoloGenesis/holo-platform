@@ -1,9 +1,13 @@
-import Image from "next/image";
-import { BRAND_ASSETS } from "../../lib/brand";
+"use client";
 
-// Dawn Glass v0.2 SENTINEL (S90) — developer preview, never linked from any
-// production page; S102 deletes it at cutover. Verifies tokens + fonts +
-// brand assets BEFORE any real screen adopts the new look.
+import Image from "next/image";
+import { useState } from "react";
+import { BRAND_ASSETS } from "../../lib/brand";
+import { MorphogenicMembrane } from "../../components/dawn-glass/v2/MorphogenicMembrane";
+import type { HologListenState } from "../../components/dawn-glass/v2/hologListen";
+
+// Dawn Glass v0.2 SENTINEL (S90; membrane added S91) — developer preview,
+// never linked from any production page; S102 deletes it at cutover.
 // (Folder is `dawn2`, not `_dawn2`: underscore-prefixed folders are PRIVATE
 // in the Next App Router and don't route.)
 
@@ -18,11 +22,61 @@ const SWATCHES: { name: string; varName: string; hex: string }[] = [
   { name: "Ink Navy", varName: "--ink", hex: "#0E1A2B" },
 ];
 
+const STATES: HologListenState[] = ["THINKING", "COHERING", "LOCKED"];
+
+/** Dev-only HOLOGLISTEN switcher — mirrors the reference HTML's .controls. */
+function HologListenControls({
+  state,
+  onChange,
+}: {
+  state: HologListenState;
+  onChange: (s: HologListenState) => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 30,
+        right: 30,
+        zIndex: 100,
+        display: "flex",
+        gap: 10,
+      }}
+    >
+      {STATES.map((s) => {
+        const active = s === state;
+        return (
+          <button
+            key={s}
+            type="button"
+            onClick={() => onChange(s)}
+            className="ss2-mono"
+            style={{
+              background: active ? "var(--gold)" : "white",
+              color: active ? "white" : "var(--ink)",
+              border: active ? "1px solid var(--gold)" : "1px solid rgba(0,0,0,0.1)",
+              padding: "10px 20px",
+              borderRadius: 20,
+              fontSize: "0.7rem",
+              cursor: "pointer",
+              transition: "0.3s",
+            }}
+          >
+            {s}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Dawn2Sentinel() {
+  const [hologState, setHologState] = useState<HologListenState>("LOCKED");
+
   return (
     <main
       style={{
-        background: "var(--nacre)",
+        background: "var(--nacre)", // fallback color if the membrane fails
         color: "var(--ink)",
         minHeight: "100svh",
         padding: "64px 32px",
@@ -33,11 +87,24 @@ export default function Dawn2Sentinel() {
         ["--dawn2-seed-umber-demo" as never]: "#8A5C3B",
       }}
     >
-      <div style={{ maxWidth: 960, margin: "0 auto", display: "grid", gap: 48 }}>
+      {/* TIER 3 — the membrane breathes behind everything (S91) */}
+      <MorphogenicMembrane state={hologState} />
+      <HologListenControls state={hologState} onChange={setHologState} />
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          maxWidth: 960,
+          margin: "0 auto",
+          display: "grid",
+          gap: 48,
+        }}
+      >
         {/* (a) Typography panel */}
         <section>
           <p className="ss2-mono" style={{ fontSize: 12, opacity: 0.5 }}>
-            [ HOLOGLISTEN_STATUS: TESTING ]
+            [ HOLOGLISTEN_STATUS: {hologState} ]
           </p>
           <h1 className="big-epic-headline gold-metallic-simple" style={{ fontSize: 80, margin: "16px 0 0" }}>
             SOULSEED
