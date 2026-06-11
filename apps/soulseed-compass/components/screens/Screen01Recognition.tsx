@@ -7,10 +7,16 @@ import { useSprint10Store } from "../../lib/sprint10Store";
 // Screen 2 (the Offer); no session/engine work happens here.
 export function Screen01Recognition() {
   const advance = useSprint10Store((s) => s.advance);
+  const returnNotice = useSprint10Store((s) => s.returnNotice);
 
   return (
     <SoulSeedScreenShell step={1} backgroundSrc="/images/soulseed/seed-offering-hero.jpg">
       <div className="mx-auto mb-10 max-w-3xl text-center">
+        {returnNotice && (
+          <p className="mb-6 inline-flex rounded-full border border-soulseed-honey/30 bg-soulseed-honey/10 px-5 py-2 text-sm text-soulseed-honey">
+            {returnNotice}
+          </p>
+        )}
         <h1 className="ss-display text-5xl leading-[1.05] text-soulseed-dawn md:text-7xl">
           Something in you
           <br />

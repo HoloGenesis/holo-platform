@@ -8,7 +8,7 @@ import type {
   SnapshotV2CreateResponse,
   SoulSeedSnapshot,
 } from "@holo/contracts";
-import { SoulSeedSnapshotSchema } from "@holo/contracts";
+import { SoulSeedSnapshotSchema, SoulSeedSnapshotV2Schema } from "@holo/contracts";
 import type { ReturnView } from "@holo/contracts";
 import type { CoreRepo } from "../repo";
 import { assembleReturnView } from "./artifacts/assembleReturn";
@@ -143,6 +143,16 @@ export async function createSoulSeedSnapshotV2(
     sessionId: input.sessionId,
   });
 
+  // Capture the prior v2 BEFORE the upsert overwrites it (S61 pattern) — this
+  // is what powers the return-visit "what moved" delta (S89).
+  let priorSnapshot: SnapshotV2CreateResponse["priorSnapshot"];
+  const priors = await repo.priorArtifacts(input.userId, 5);
+  const priorRow = priors.find((a) => a.artifactType === "soulseed-snapshot-v2");
+  if (priorRow) {
+    const parsed = SoulSeedSnapshotV2Schema.safeParse(priorRow.contentJson);
+    if (parsed.success) priorSnapshot = parsed.data;
+  }
+
   const { id } = await repo.upsertArtifact({
     userId: input.userId,
     sessionId: input.sessionId,
@@ -163,5 +173,10 @@ export async function createSoulSeedSnapshotV2(
     importance: 0.7,
   });
 
-  return { artifactId: id, artifactType: "soulseed-snapshot-v2", contentJson: snapshot };
+  return {
+    artifactId: id,
+    artifactType: "soulseed-snapshot-v2",
+    contentJson: snapshot,
+    ...(priorSnapshot ? { priorSnapshot } : {}),
+  };
 }

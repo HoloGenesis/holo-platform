@@ -12,6 +12,8 @@ type SoulSeedScreenShellProps = {
   backgroundSrc: string;
   children: ReactNode;
   className?: string;
+  /** "return" renders the short 3-dot rail (S89's 3-screen return flow). */
+  mode?: "first" | "return";
 };
 
 export function SoulSeedScreenShell({
@@ -20,7 +22,9 @@ export function SoulSeedScreenShell({
   backgroundSrc,
   children,
   className,
+  mode = "first",
 }: SoulSeedScreenShellProps) {
+  const railTotal = mode === "return" ? 3 : total;
   return (
     <main className={clsx("soulseed-page min-h-svh screen-enter", className)}>
       <div className="soulseed-bg">
@@ -34,7 +38,7 @@ export function SoulSeedScreenShell({
           <span className="font-ssUi text-xl">SoulSeed Compass</span>
         </div>
         <div className="hidden items-center gap-2 md:flex">
-          {Array.from({ length: total }).map((_, index) => (
+          {Array.from({ length: railTotal }).map((_, index) => (
             <span
               key={index}
               className={clsx(

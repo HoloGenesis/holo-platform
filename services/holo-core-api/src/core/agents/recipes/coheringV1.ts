@@ -1,7 +1,7 @@
 import { CoheringOutputSchema } from "@holo/contracts";
 import type { ChamberVectors, CoheringInput, CoheringOutput } from "@holo/contracts";
 import type { CoreRepo } from "../../../repo";
-import { upsertMemory } from "../../memory";
+import { getContext, upsertMemory } from "../../memory";
 import { SOULSEED_AGENT_DOCTRINE } from "../soulseed-agent-instructions";
 
 // cohering-v1 (S84, protocol-completed S84b). A SINGLE LLM call reads the
@@ -57,6 +57,18 @@ Return a SINGLE valid JSON object and NOTHING else — no markdown, no prose out
   "nextCoherentStep": string
 }`;
 
+// Return-mode appendix (S89). "Returns deepen identity": the recognition names
+// the delta; the six chamber vectors reflect the CURRENT state.
+const RETURN_MODE_APPENDIX = `
+
+---
+
+This is a RETURN cohering. The user has been here before. Their prior chamber signal is in the memory snapshot you've been given. Your task is to recognize what's NEW or DIFFERENT since their last cohering. Do not re-recognize what hasn't moved — name the delta. The recognition line should foreground change: "You returned with X moving / Y settling / Z newly clear." Six chamber vectors should reflect the CURRENT state (not the delta); the delta lives in the recognitionLine itself.`;
+
+function systemPromptFor(coheringMode: "first" | "return"): string {
+  return coheringMode === "return" ? `${SYSTEM_PROMPT}${RETURN_MODE_APPENDIX}` : SYSTEM_PROMPT;
+}
+
 export interface RunCoheringOptions {
   /** Override the resolved mode (tests). */
   mode?: "mock" | "live";
@@ -106,7 +118,10 @@ function mockCohering(input: CoheringInput): CoheringOutput {
   const corrected = input.correctionOf ? clip(input.correctionOf, 60) : null;
 
   let recognitionLine: string;
-  if (added) {
+  if (input.mode === "return") {
+    // return cohering — the recognition foregrounds the DELTA (S89)
+    recognitionLine = `You returned with something moving: "${corrected ?? added ?? a}". The rest of you holds; this is what's newly clear.`;
+  } else if (added) {
     // path (b): augmentation — both the original and the addition are signal
     recognitionLine = `You arrive as "${a}" — and with what you added — "${added}" — the picture sharpens, not changes.`;
   } else if (corrected) {
@@ -135,10 +150,12 @@ function mockCohering(input: CoheringInput): CoheringOutput {
 }
 
 /** Live call: Anthropic Messages API. Retries transient errors a couple times. */
-async function liveCohering(input: CoheringInput): Promise<CoheringOutput | null> {
+async function liveCohering(input: CoheringInput, priorContext?: string): Promise<CoheringOutput | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
-  const userContent = buildUserContent(input);
+  const userContent = priorContext
+    ? `${priorContext}\n\n${buildUserContent(input)}`
+    : buildUserContent(input);
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     let res: Response;
@@ -153,7 +170,7 @@ async function liveCohering(input: CoheringInput): Promise<CoheringOutput | null
         body: JSON.stringify({
           model: ANTHROPIC_MODEL,
           max_tokens: 1400,
-          system: SYSTEM_PROMPT,
+          system: systemPromptFor(input.mode ?? "first"),
           messages: [{ role: "user", content: userContent }],
         }),
       });
@@ -203,7 +220,23 @@ export async function runCoheringV1(
   let output: CoheringOutput;
   let model: string;
   if (mode === "live") {
-    const live = await liveCohering(input);
+    // return cohering: hand the model the prior recognition so "what's new" is
+    // grounded in what was actually recognized before (best-effort).
+    let priorContext: string | undefined;
+    if (input.mode === "return") {
+      try {
+        const ctx = await getContext(repo, {
+          userId: input.userId,
+          productKey: SOURCE_PRODUCT,
+          scopes: ["state"],
+        });
+        const prior = ctx.state.find((m) => m.contentJson?.["key"] === "cohering.recognition");
+        if (prior) priorContext = `Their prior recognition was: ${prior.content}`;
+      } catch {
+        // proceed without prior context
+      }
+    }
+    const live = await liveCohering(input, priorContext);
     output = live ?? fallbackCohering(input);
     model = live ? `anthropic:${ANTHROPIC_MODEL}` : `anthropic:${ANTHROPIC_MODEL}+fallback`;
   } else {
@@ -273,6 +306,7 @@ export async function runCoheringV1(
       answer: input.answer,
       correctionOf: input.correctionOf ?? null,
       addedContext: input.addedContext ?? null,
+      mode: input.mode ?? "first",
     },
     output,
     model,

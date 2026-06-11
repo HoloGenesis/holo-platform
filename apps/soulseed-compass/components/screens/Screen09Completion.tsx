@@ -22,6 +22,7 @@ const QUADRANTS: ReadonlyArray<readonly [string, string]> = [
 
 export function Screen09Completion() {
   const completionStatus = useSprint10Store((s) => s.completionStatus);
+  const isReturnMode = useSprint10Store((s) => s.isReturnMode);
   const completeFlow = useSprint10Store((s) => s.completeFlow);
   const enterMySoulSeed = useSprint10Store((s) => s.enterMySoulSeed);
 
@@ -37,8 +38,13 @@ export function Screen09Completion() {
         <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="mb-6 text-soulseed-honey">9 / 9</p>
-            <h1 className="ss-display text-5xl leading-[1.04] md:text-7xl">You&apos;re all set.</h1>
-            <h2 className="mt-6 text-3xl text-soulseed-honey">Your SoulSeed is active.</h2>
+            {/* return mode: it's already active — the message is evolution (S89) */}
+            <h1 className="ss-display text-5xl leading-[1.04] md:text-7xl">
+              {isReturnMode ? "Your SoulSeed has evolved." : "You're all set."}
+            </h1>
+            {!isReturnMode && (
+              <h2 className="mt-6 text-3xl text-soulseed-honey">Your SoulSeed is active.</h2>
+            )}
             <p className="mt-8 max-w-xl text-xl leading-9 text-soulseed-dawn/76">
               Every time you return, your ANG3L will meet you here — with more context, more care,
               and more continuity.

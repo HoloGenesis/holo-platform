@@ -25,6 +25,8 @@ export const CoheringInputSchema = z.object({
   correctionOf: z.string().optional(),
   /** Path (b) "Mostly, but there's more": augments the answer, not replaces it. */
   addedContext: z.string().optional(),
+  /** "return" = re-cohering on a return visit (S89); defaults to "first". */
+  mode: z.enum(["first", "return"]).optional(),
 });
 export type CoheringInput = z.infer<typeof CoheringInputSchema>;
 

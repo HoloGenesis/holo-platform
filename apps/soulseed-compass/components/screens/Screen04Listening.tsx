@@ -5,24 +5,35 @@ import { DawnGlass, GhostButton, SoulSeedScreenShell, Whorl } from "../dawn-glas
 import { useSprint10Store } from "../../lib/sprint10Store";
 
 // Screen 4 — Listening / Pattern Forming (spec §9). A transition state: no user
-// input. Auto-advances to Screen 5 once the cohering call resolves; shows an
-// error card with a retry if it failed.
-export function Screen04Listening() {
-  const coheringStatus = useSprint10Store((s) => s.coheringStatus);
+// input. Auto-advances once the cohering call resolves; shows an error card
+// with a retry if it failed. Reused verbatim by the return flow (S89) with
+// variant="return": same visual, return-cohering wiring, 3-dot rail.
+export function Screen04Listening({ variant = "first" }: { variant?: "first" | "return" }) {
+  const isReturn = variant === "return";
+  const firstStatus = useSprint10Store((s) => s.coheringStatus);
+  const returnStatus = useSprint10Store((s) => s.returnRecognitionStatus);
   const coheringError = useSprint10Store((s) => s.coheringError);
   const goTo = useSprint10Store((s) => s.goTo);
   const runCohering = useSprint10Store((s) => s.runCohering);
+  const submitReturnAnswer = useSprint10Store((s) => s.submitReturnAnswer);
+
+  const status = isReturn ? returnStatus : firstStatus;
+  const retry = isReturn ? submitReturnAnswer : runCohering;
 
   useEffect(() => {
-    if (coheringStatus === "ready") goTo(5);
-  }, [coheringStatus, goTo]);
+    if (status === "ready") goTo(isReturn ? "RETURN_SNAPSHOT" : 5);
+  }, [status, goTo, isReturn]);
 
   return (
-    <SoulSeedScreenShell step={4} backgroundSrc="/images/soulseed/seed-offering-close.jpg">
+    <SoulSeedScreenShell
+      step={isReturn ? 2 : 4}
+      mode={variant}
+      backgroundSrc="/images/soulseed/seed-offering-close.jpg"
+    >
       <DawnGlass className="p-8 md:p-12">
         <div className="grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center">
           <div>
-            <p className="mb-6 text-soulseed-honey">4 / 9</p>
+            <p className="mb-6 text-soulseed-honey">{isReturn ? "Return" : "4 / 9"}</p>
             <h1 className="ss-display text-5xl leading-[1.04] md:text-7xl">
               Listening for how
               <br />
@@ -49,12 +60,12 @@ export function Screen04Listening() {
           </div>
           <div className="flex flex-col items-center justify-center gap-6">
             <Whorl className="[--whorl-size:360px]" />
-            {coheringStatus === "error" && (
+            {status === "error" && (
               <DawnGlass className="max-w-sm p-6 text-center">
                 <p className="text-sm text-soulseed-coral">
                   {coheringError ?? "Something went quiet. Try again."}
                 </p>
-                <GhostButton type="button" className="mt-4" onClick={() => void runCohering()}>
+                <GhostButton type="button" className="mt-4" onClick={() => void retry()}>
                   Try again
                 </GhostButton>
               </DawnGlass>

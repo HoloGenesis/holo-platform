@@ -15,11 +15,14 @@ export const ArtifactCreateRequestSchema = z.object({
 });
 export type ArtifactCreateRequest = z.infer<typeof ArtifactCreateRequestSchema>;
 
-/** Response for the v2 path of artifacts/create (S86). */
+/** Response for the v2 path of artifacts/create (S86; priorSnapshot added S89). */
 export const SnapshotV2CreateResponseSchema = z.object({
   artifactId: UuidSchema,
   artifactType: z.literal("soulseed-snapshot-v2"),
   contentJson: SoulSeedSnapshotV2Schema,
+  /** The user's previous v2 Snapshot, captured BEFORE this upsert overwrote it
+   *  (S61 pattern). Present only when one existed — drives the return delta. */
+  priorSnapshot: SoulSeedSnapshotV2Schema.optional(),
 });
 export type SnapshotV2CreateResponse = z.infer<typeof SnapshotV2CreateResponseSchema>;
 

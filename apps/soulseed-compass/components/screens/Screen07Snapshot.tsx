@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { SnapshotRow, SoulSeedSnapshotV2 } from "@holo/contracts";
 import { DawnGlass, GhostButton, IridescentButton, SoulSeedScreenShell, Whorl } from "../dawn-glass";
+import { WhatMovedV2 } from "../dawn-glass/WhatMovedV2";
 import { useSprint10Store } from "../../lib/sprint10Store";
 
 // Screen 7 — SoulSeed Snapshot (spec §12, schema per S86/audit item 4). Rows
@@ -19,11 +20,13 @@ const ROW_META: { key: keyof SoulSeedSnapshotV2; label: string; icon: string; hi
   { key: "nextCoherentStep", label: "Next Coherent Step", icon: "✦" },
 ];
 
-export function Screen07Snapshot() {
+export function Screen07Snapshot({ showDelta = false }: { showDelta?: boolean }) {
   const snapshot = useSprint10Store((s) => s.snapshot);
   const snapshotStatus = useSprint10Store((s) => s.snapshotStatus);
   const snapshotError = useSprint10Store((s) => s.snapshotError);
   const snapshotNeedsCohering = useSprint10Store((s) => s.snapshotNeedsCohering);
+  const priorSnapshot = useSprint10Store((s) => s.priorSnapshot);
+  const returnAnswer = useSprint10Store((s) => s.returnAnswer);
   const composeSnapshot = useSprint10Store((s) => s.composeSnapshot);
   const continueToHurl = useSprint10Store((s) => s.continueToHurl);
   const goTo = useSprint10Store((s) => s.goTo);
@@ -48,15 +51,29 @@ export function Screen07Snapshot() {
   };
 
   return (
-    <SoulSeedScreenShell step={7} backgroundSrc="/images/soulseed/seed-offering-close.jpg">
+    <SoulSeedScreenShell
+      step={showDelta ? 3 : 7}
+      mode={showDelta ? "return" : "first"}
+      backgroundSrc="/images/soulseed/seed-offering-close.jpg"
+    >
       <DawnGlass className="p-8 md:p-12">
-        <p className="mb-6 text-soulseed-honey">7 / 9</p>
+        <p className="mb-6 text-soulseed-honey">{showDelta ? "Return" : "7 / 9"}</p>
         <h1 className="ss-display max-w-4xl text-5xl leading-[1.04] md:text-7xl">
           Your SoulSeed Snapshot
         </h1>
         <p className="mt-6 text-xl text-soulseed-dawn/74">
           A living summary of you, right now. You can refine this anytime.
         </p>
+
+        {showDelta && ready && priorSnapshot && snapshot && (
+          <div className="mt-8">
+            <WhatMovedV2
+              prior={priorSnapshot}
+              current={snapshot}
+              whatChangedLine={returnAnswer.trim() || undefined}
+            />
+          </div>
+        )}
 
         {snapshotStatus === "error" && (
           <DawnGlass className="mt-8 max-w-xl p-6">
@@ -119,7 +136,7 @@ export function Screen07Snapshot() {
             </p>
           </div>
           <IridescentButton type="button" disabled={!ready} onClick={continueToHurl}>
-            Reveal My HURL →
+            {showDelta ? "Continue your SoulSeed →" : "Reveal My HURL →"}
           </IridescentButton>
         </div>
       </DawnGlass>

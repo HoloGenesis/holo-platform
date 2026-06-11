@@ -1,12 +1,17 @@
 "use client";
 
 import { create } from "zustand";
-import type { CoheringOutput, ProofOutput, SoulSeedSnapshotV2 } from "@holo/contracts";
+import type {
+  CoheringOutput,
+  ProofOutput,
+  SessionResumeResponse,
+  SoulSeedSnapshotV2,
+} from "@holo/contracts";
 import { holo } from "./holo";
 import { returnUrlFromSnapshot } from "./hurl";
 
-// Sprint-10 nine-screen sequence state. Deliberately SEPARATE from chamberStore
-// so the existing shell keeps working during the rebuild (cutover at S89).
+// The canonical shell store (Sprint-10; sole store since the S89 cutover).
+// First visit = 9 screens; return-by-HURL = the 3-screen return flow.
 // Uses the EXISTING SDK; anonymous-first.
 
 const TOTAL = 9;
@@ -39,8 +44,13 @@ type CoheringStatus = "idle" | "running" | "ready" | "error";
 type ConfirmStatus = "idle" | "confirmed" | "correcting";
 type ProofStatus = "idle" | "running" | "ready" | "error";
 
+/** Return-mode screens (S89). 3 screens, not 9: "Returns deepen identity." */
+export type ReturnScreen = "RETURN_QUESTION" | "RETURN_LISTENING" | "RETURN_SNAPSHOT";
+export type ScreenKey = number | ReturnScreen;
+type ResumeContext = SessionResumeResponse["resumeContext"];
+
 interface Sprint10Store {
-  currentScreen: number;
+  currentScreen: ScreenKey;
   total: number;
   // session (S83)
   sessionId: string | null;
@@ -73,10 +83,19 @@ interface Sprint10Store {
   // completion (S88)
   completionStatus: "idle" | "completing" | "complete" | "error";
   completedAt: string | null;
+  // return mode (S89)
+  isReturnMode: boolean;
+  resumeContext: ResumeContext | null;
+  returnArrivalVector: string | null;
+  priorSnapshot: SoulSeedSnapshotV2 | null;
+  returnAnswer: string;
+  returnRecognition: CoheringOutput | null;
+  returnRecognitionStatus: CoheringStatus;
+  returnNotice: string | null; // gentle Screen-1 notice when a return URL fails
 
   advance: () => void;
   back: () => void;
-  goTo: (n: number) => void;
+  goTo: (n: ScreenKey) => void;
   startSession: () => Promise<boolean>;
   setAnswer: (text: string) => void;
   runCohering: (opts?: { correctionOf?: string; addedContext?: string }) => Promise<void>;
@@ -102,6 +121,11 @@ interface Sprint10Store {
   completeFlow: () => Promise<void>;
   /** The one hard navigation in Sprint-10: leave for the return URL (S25 resume). */
   enterMySoulSeed: () => Promise<void>;
+  /** Return-by-HURL entry (S89): resolve + resume, or gracefully fall back to Screen 1. */
+  enterByReturnUrl: (encodedOrCanonical: string) => Promise<void>;
+  setReturnAnswer: (text: string) => void;
+  /** "What changed?" → return cohering (mode "return") → RETURN_SNAPSHOT. */
+  submitReturnAnswer: () => Promise<void>;
 }
 
 export const useSprint10Store = create<Sprint10Store>((set, get) => ({
@@ -131,10 +155,22 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   emailSentTo: null,
   completionStatus: "idle",
   completedAt: null,
+  isReturnMode: false,
+  resumeContext: null,
+  returnArrivalVector: null,
+  priorSnapshot: null,
+  returnAnswer: "",
+  returnRecognition: null,
+  returnRecognitionStatus: "idle",
+  returnNotice: null,
 
-  advance: () => set((s) => ({ currentScreen: clamp(s.currentScreen + 1) })),
-  back: () => set((s) => ({ currentScreen: clamp(s.currentScreen - 1) })),
-  goTo: (n) => set({ currentScreen: clamp(n) }),
+  // numeric navigation applies to the 9-screen first-visit flow; return-mode
+  // transitions are explicit (string keys) and never increment.
+  advance: () =>
+    set((s) => (typeof s.currentScreen === "number" ? { currentScreen: clamp(s.currentScreen + 1) } : {})),
+  back: () =>
+    set((s) => (typeof s.currentScreen === "number" ? { currentScreen: clamp(s.currentScreen - 1) } : {})),
+  goTo: (n) => set({ currentScreen: typeof n === "number" ? clamp(n) : n }),
 
   startSession: async () => {
     const { startStatus, sessionId } = get();
@@ -300,7 +336,11 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
     set({ snapshotStatus: "composing", snapshotError: null, snapshotNeedsCohering: false });
     try {
       const res = await holo.artifacts.composeSnapshotV2({ userId, sessionId });
-      set({ snapshot: res.contentJson, snapshotStatus: "ready" });
+      set({
+        snapshot: res.contentJson,
+        priorSnapshot: res.priorSnapshot ?? null, // powers the return delta (S89)
+        snapshotStatus: "ready",
+      });
     } catch (err) {
       const code = (err as { code?: unknown })?.code;
       const needsCohering = code === "cohering_signal_missing";
@@ -421,6 +461,86 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
     }
     if (typeof window !== "undefined") {
       window.location.assign(returnUrl); // the cohering event closes; the living document opens
+    }
+  },
+
+  // --- return mode (S89). "Returns deepen identity" — 3 screens, not 9. ------
+
+  enterByReturnUrl: async (encodedOrCanonical) => {
+    const canonical = encodedOrCanonical.startsWith("hurl://")
+      ? encodedOrCanonical
+      : decodeURIComponent(encodedOrCanonical);
+    try {
+      const resolved = await holo.hurl.resolve(canonical);
+      const resumed = await holo.sessions.resume({
+        userId: resolved.userId,
+        sessionId: resolved.sessionId,
+      });
+      const arrivalVector = resumed.state.custom?.["arrivalVector"];
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("sprint10:userId", resumed.userId);
+        window.localStorage.setItem("sprint10:sessionId", resumed.sessionId);
+      }
+      set({
+        isReturnMode: true,
+        userId: resumed.userId,
+        sessionId: resumed.sessionId,
+        startStatus: "ready",
+        resumeContext: resumed.resumeContext,
+        returnArrivalVector: typeof arrivalVector === "string" ? arrivalVector : null,
+        currentScreen: "RETURN_QUESTION",
+      });
+    } catch {
+      // invalid / unknown HURL — gentle fallback to a fresh first visit
+      const userId = ls("sprint10:userId");
+      const sessionId = ls("sprint10:sessionId");
+      if (userId && sessionId) {
+        try {
+          await holo.memory.upsert({
+            userId,
+            sessionId,
+            sourceProduct: PRODUCT_KEY,
+            scope: "event",
+            content: "Invalid return URL attempted.",
+            contentJson: { key: "invalid_return_url_attempt" },
+            importance: 0.05,
+          });
+        } catch {
+          // best-effort only
+        }
+      }
+      set({
+        isReturnMode: false,
+        currentScreen: 1,
+        returnNotice: "We couldn't find a SoulSeed for that link. Let's begin a new one.",
+      });
+    }
+  },
+
+  setReturnAnswer: (text) => set({ returnAnswer: text }),
+
+  submitReturnAnswer: async () => {
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    const answer = get().returnAnswer.trim();
+    if (!userId || !sessionId || answer.length < 1) return;
+
+    set({
+      currentScreen: "RETURN_LISTENING",
+      returnRecognitionStatus: "running",
+      // a return composes a FRESH snapshot — reset so RETURN_SNAPSHOT recomposes
+      snapshot: null,
+      priorSnapshot: null,
+      snapshotStatus: "idle",
+    });
+    try {
+      const out = await holo.cohering.run({ userId, sessionId, answer, mode: "return" });
+      set({ returnRecognition: out, returnRecognitionStatus: "ready" });
+    } catch (err) {
+      set({
+        returnRecognitionStatus: "error",
+        coheringError: err instanceof Error ? err.message : "Something went quiet. Try again.",
+      });
     }
   },
 }));

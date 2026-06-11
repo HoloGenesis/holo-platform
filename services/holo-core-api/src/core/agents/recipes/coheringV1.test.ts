@@ -32,6 +32,27 @@ describe("cohering-v1 (S84b) — full output shape", () => {
   });
 });
 
+describe("cohering-v1 (S89) — return mode", () => {
+  it("mode 'return' yields a delta-foregrounding recognition, distinct from first-mode for the same answer", async () => {
+    const { repo } = makeFakeRepo();
+    const userId = randomUUID();
+    const sessionId = randomUUID();
+
+    const first = await runCoheringV1(repo, { userId, sessionId, answer: ANSWER }, { mode: "mock" });
+    const returned = await runCoheringV1(
+      repo,
+      { userId, sessionId, answer: ANSWER, mode: "return" },
+      { mode: "mock" }
+    );
+
+    expect(returned.recognitionLine).not.toBe(first.recognitionLine);
+    expect(returned.recognitionLine).toContain("You returned");
+    // vectors reflect CURRENT state — all six still populated
+    expect(Object.values(returned.chamberVectors)).toHaveLength(6);
+    expect(CoheringOutputSchema.safeParse(returned).success).toBe(true);
+  });
+});
+
 describe("cohering-v1 (S84b) — path (b) augment vs path (c) regenerate", () => {
   it("augment (addedContext): second recognition differs from first AND draws on both the original and the addition", async () => {
     const { repo, memories } = makeFakeRepo();
