@@ -70,6 +70,9 @@ interface Sprint10Store {
   emailStatus: "idle" | "sending" | "sent" | "error";
   emailError: string | null;
   emailSentTo: string | null;
+  // completion (S88)
+  completionStatus: "idle" | "completing" | "complete" | "error";
+  completedAt: string | null;
 
   advance: () => void;
   back: () => void;
@@ -95,6 +98,10 @@ interface Sprint10Store {
   resetEmailCapture: () => void;
   /** Record hurl.opened (analytic) and advance to Screen 9. Internal — never redirects. */
   openMyHurl: () => Promise<void>;
+  /** Screen 9 mount: write flow.completed exactly once (re-entry guarded). */
+  completeFlow: () => Promise<void>;
+  /** The one hard navigation in Sprint-10: leave for the return URL (S25 resume). */
+  enterMySoulSeed: () => Promise<void>;
 }
 
 export const useSprint10Store = create<Sprint10Store>((set, get) => ({
@@ -122,6 +129,8 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
   emailStatus: "idle",
   emailError: null,
   emailSentTo: null,
+  completionStatus: "idle",
+  completedAt: null,
 
   advance: () => set((s) => ({ currentScreen: clamp(s.currentScreen + 1) })),
   back: () => set((s) => ({ currentScreen: clamp(s.currentScreen - 1) })),
@@ -357,5 +366,61 @@ export const useSprint10Store = create<Sprint10Store>((set, get) => ({
       }
     }
     set({ currentScreen: clamp(9) });
+  },
+
+  // "First run proves meetability. Returns deepen identity. The first SoulSeed
+  // is not the whole tree. It is the viable seed." — Brooks's Q-O lock. Screen 9
+  // closes the cohering event; flow.completed is the durable record of the seed.
+  completeFlow: async () => {
+    const status = get().completionStatus;
+    if (status === "completing" || status === "complete") return; // exactly-once guard
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    if (!userId || !sessionId) {
+      set({ completionStatus: "error" });
+      return;
+    }
+    set({ completionStatus: "completing" });
+    const completedAt = new Date().toISOString();
+    try {
+      await holo.memory.upsert({
+        userId,
+        sessionId,
+        sourceProduct: PRODUCT_KEY,
+        scope: "state",
+        content: "SoulSeed first run complete.",
+        contentJson: { key: "flow.completed", completedAt },
+        importance: 0.85,
+      });
+      set({ completionStatus: "complete", completedAt });
+    } catch {
+      set({ completionStatus: "error" });
+    }
+  },
+
+  enterMySoulSeed: async () => {
+    const returnUrl = get().getReturnUrl();
+    if (!returnUrl) return;
+    const userId = get().userId ?? ls("sprint10:userId");
+    const sessionId = get().sessionId ?? ls("sprint10:sessionId");
+    if (userId && sessionId) {
+      try {
+        // best-effort, written immediately before the navigation; never blocks it
+        await holo.memory.upsert({
+          userId,
+          sessionId,
+          sourceProduct: PRODUCT_KEY,
+          scope: "state",
+          content: "true",
+          contentJson: { key: "flow.entered_my_soulseed" },
+          importance: 0.3,
+        });
+      } catch {
+        // fire-and-forget — navigation proceeds regardless
+      }
+    }
+    if (typeof window !== "undefined") {
+      window.location.assign(returnUrl); // the cohering event closes; the living document opens
+    }
   },
 }));
