@@ -4,7 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { BRAND_ASSETS } from "../../lib/brand";
 import { MorphogenicMembrane } from "../../components/dawn-glass/v2/MorphogenicMembrane";
-import type { HologListenState } from "../../components/dawn-glass/v2/hologListen";
+import { BiologicalRefraction } from "../../components/dawn-glass/v2/BiologicalRefraction";
+import { OsmoticManifold } from "../../components/dawn-glass/v2/OsmoticManifold";
+import { HOLOGLISTEN_CONFIG, type HologListenState } from "../../components/dawn-glass/v2/hologListen";
 
 // Dawn Glass v0.2 SENTINEL (S90; membrane added S91) — developer preview,
 // never linked from any production page; S102 deletes it at cutover.
@@ -40,32 +42,40 @@ function HologListenControls({
         right: 30,
         zIndex: 100,
         display: "flex",
-        gap: 10,
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: 8,
       }}
     >
-      {STATES.map((s) => {
-        const active = s === state;
-        return (
-          <button
-            key={s}
-            type="button"
-            onClick={() => onChange(s)}
-            className="ss2-mono"
-            style={{
-              background: active ? "var(--gold)" : "white",
-              color: active ? "white" : "var(--ink)",
-              border: active ? "1px solid var(--gold)" : "1px solid rgba(0,0,0,0.1)",
-              padding: "10px 20px",
-              borderRadius: 20,
-              fontSize: "0.7rem",
-              cursor: "pointer",
-              transition: "0.3s",
-            }}
-          >
-            {s}
-          </button>
-        );
-      })}
+      <div style={{ display: "flex", gap: 10 }}>
+        {STATES.map((s) => {
+          const active = s === state;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onChange(s)}
+              className="ss2-mono"
+              style={{
+                background: active ? "var(--gold)" : "white",
+                color: active ? "white" : "var(--ink)",
+                border: active ? "1px solid var(--gold)" : "1px solid rgba(0,0,0,0.1)",
+                padding: "10px 20px",
+                borderRadius: 20,
+                fontSize: "0.7rem",
+                cursor: "pointer",
+                transition: "0.3s",
+              }}
+            >
+              {s}
+            </button>
+          );
+        })}
+      </div>
+      {/* dev label: verifies the imperative scale update without DevTools */}
+      <p className="ss2-mono" style={{ fontSize: "0.65rem", opacity: 0.6, margin: 0 }}>
+        Filter scale: {HOLOGLISTEN_CONFIG[state].svgRipple}
+      </p>
     </div>
   );
 }
@@ -89,11 +99,14 @@ export default function Dawn2Sentinel() {
     >
       {/* TIER 3 — the membrane breathes behind everything (S91) */}
       <MorphogenicMembrane state={hologState} />
+      {/* TIER 2 — the refraction filter defs, mounted ONCE (S92) */}
+      <BiologicalRefraction state={hologState} />
+      {/* controls stay OUTSIDE the manifold — precise clicks shouldn't wobble */}
       <HologListenControls state={hologState} onChange={setHologState} />
 
-      <div
+      {/* foreground content refracts; the membrane behind it does not */}
+      <OsmoticManifold
         style={{
-          position: "relative",
           zIndex: 1,
           maxWidth: 960,
           margin: "0 auto",
@@ -154,7 +167,7 @@ export default function Dawn2Sentinel() {
             <Image src={BRAND_ASSETS.logoHero} alt="SoulSeed Compass logo (hero)" width={280} height={160} style={{ objectFit: "contain" }} />
           </div>
         </section>
-      </div>
+      </OsmoticManifold>
     </main>
   );
 }
