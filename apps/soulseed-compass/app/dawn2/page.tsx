@@ -3,10 +3,14 @@
 import Image from "next/image";
 import { useState } from "react";
 import { BRAND_ASSETS } from "../../lib/brand";
-import { MorphogenicMembrane } from "../../components/dawn-glass/v2/MorphogenicMembrane";
-import { BiologicalRefraction } from "../../components/dawn-glass/v2/BiologicalRefraction";
-import { OsmoticManifold } from "../../components/dawn-glass/v2/OsmoticManifold";
-import { HOLOGLISTEN_CONFIG, type HologListenState } from "../../components/dawn-glass/v2/hologListen";
+import {
+  BiologicalRefraction,
+  HOLOGLISTEN_CONFIG,
+  MorphogenicMembrane,
+  OsmoticManifold,
+  PearlCard,
+  type HologListenState,
+} from "../../components/dawn-glass/v2";
 
 // Dawn Glass v0.2 SENTINEL (S90; membrane added S91) — developer preview,
 // never linked from any production page; S102 deletes it at cutover.
@@ -108,12 +112,12 @@ export default function Dawn2Sentinel() {
       <OsmoticManifold
         style={{
           zIndex: 1,
-          maxWidth: 960,
+          maxWidth: 1200,
           margin: "0 auto",
-          display: "grid",
-          gap: 48,
         }}
       >
+        {/* TIER 1 — the hero pearl card holds the page's primary content (S93) */}
+        <PearlCard size="hero" glow="default" style={{ display: "grid", gap: 48, margin: "0 auto" }}>
         {/* (a) Typography panel */}
         <section>
           <p className="ss2-mono" style={{ fontSize: 12, opacity: 0.5 }}>
@@ -167,6 +171,34 @@ export default function Dawn2Sentinel() {
             <Image src={BRAND_ASSETS.logoHero} alt="SoulSeed Compass logo (hero)" width={280} height={160} style={{ objectFit: "contain" }} />
           </div>
         </section>
+        </PearlCard>
+      </OsmoticManifold>
+
+      {/* PearlCard size + glow variants, side by side (S93) — own manifold so
+          all three wobble with HOLOGLISTEN */}
+      <OsmoticManifold
+        style={{
+          zIndex: 1,
+          maxWidth: 1200,
+          margin: "48px auto 0",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-start",
+          gap: 24,
+        }}
+      >
+        <PearlCard size="compact">
+          <h3 className="ss-h" style={{ fontSize: 22, margin: 0 }}>Compact</h3>
+          <p className="ss-body" style={{ marginTop: 8 }}>For nested cards, small CTAs.</p>
+        </PearlCard>
+        <PearlCard size="standard">
+          <h3 className="ss-h" style={{ fontSize: 22, margin: 0 }}>Standard</h3>
+          <p className="ss-body" style={{ marginTop: 8 }}>The default content surface.</p>
+        </PearlCard>
+        <PearlCard size="hero" glow="vivid" style={{ flex: "1 1 100%" }}>
+          <h3 className="ss-h" style={{ fontSize: 22, margin: 0 }}>Hero · Vivid Glow</h3>
+          <p className="ss-body" style={{ marginTop: 8 }}>Landing pages, primary moments.</p>
+        </PearlCard>
       </OsmoticManifold>
     </main>
   );
